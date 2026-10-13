@@ -1,0 +1,10 @@
+{
+  "name": "kit-website",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "เว็บไซต์ KIT (Kosadilok Institute of Technology) — Vercel + Supabase",
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  }
+}
