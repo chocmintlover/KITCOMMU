@@ -71,7 +71,7 @@ async function initDb(){if(!SB){DBS='noconfig';render();return}
 function loginView(){let b;
  if(!SB)b=`<div class="msg er">${E(dbOff())}</div>`;
  else if(DBS==='pending')b='<p>กำลังตรวจสอบสิทธิ์...</p>';
- else b=`<div class="w sec" style="max-width:420px;padding:0"><h1>เข้าสู่ระบบหลังบ้าน</h1><p>สำหรับทีมงานที่ได้รับอนุญาตเท่านั้น</p>${LOGIN.msg?`<div class="msg er">${E(LOGIN.msg)}</div>`:''}${Auth.session&&!Auth.staff?`<div class="msg er">บัญชี ${E(Auth.email)} ไม่ได้อยู่ในรายชื่อทีมงาน <button type="button" class="btn s" onclick="doLogout()">ออกจากระบบ</button></div>`:''}<form onsubmit="doLogin();return false"><label for="lg_e">อีเมล</label><input id="lg_e" type="email" autocomplete="username" required value="${E(LOGIN.email)}"><label for="lg_p">รหัสผ่าน</label><input id="lg_p" type="password" autocomplete="current-password" required><p><button type="submit" class="btn b"${LOGIN.busy?' disabled':''}>${LOGIN.busy?'กำลังเข้าสู่ระบบ...':'เข้าสู่ระบบ'}</button></p></form><p><a href="#/">&#8592; กลับหน้าเว็บไซต์</a></p></div>`;
+ else b=`<div class="w sec" style="max-width:420px;padding:0"><h1>Staff Only</h1><p>Authorized personnel only.</p>${LOGIN.msg?`<div class="msg er">${E(LOGIN.msg)}</div>`:''}${Auth.session&&!Auth.staff?`<div class="msg er">บัญชี ${E(Auth.email)} ไม่ได้อยู่ในรายชื่อทีมงาน <button type="button" class="btn s" onclick="doLogout()">ออกจากระบบ</button></div>`:''}<form onsubmit="doLogin();return false"><label for="lg_e">อีเมล</label><input id="lg_e" type="email" autocomplete="username" required value="${E(LOGIN.email)}"><label for="lg_p">รหัสผ่าน</label><input id="lg_p" type="password" autocomplete="current-password" required><p><button type="submit" class="btn b"${LOGIN.busy?' disabled':''}>${LOGIN.busy?'กำลังเข้าสู่ระบบ...':'เข้าสู่ระบบ'}</button></p></form><p><a href="#/">&#8592; กลับหน้าเว็บไซต์</a></p></div>`;
  return shell(`<div class="w sec">${b}</div>`)}
 async function doLogin(){const e=$('lg_e').value.trim(),p=$('lg_p').value;LOGIN.email=e;if(!e||!p){LOGIN.msg='กรอกอีเมลและรหัสผ่าน';return render()}
  LOGIN.busy=true;LOGIN.msg='';render();
@@ -86,7 +86,7 @@ function shell(body){const s=getSet(),h=location.hash||'#/';
  const lb=m=>`<span class="dl">${E(m.label)}</span><span class="ml">${E(m.m||m.label)}</span>`,act=m=>m.kind!=='url'&&m.kind!=='heading'&&m.href&&(h===m.href||(m.href!=='#/'&&h.startsWith(m.href))),tg=m=>m.kind==='url'&&m.tab==='new'?' target="_blank" rel="noopener noreferrer"':'',vis=visMenu(),
  A=(m,c)=>m.href?`<a href="${E(m.href)}" class="${c}"${tg(m)}>${lb(m)}</a>`:`<span class="dis" aria-disabled="true">${lb(m)} <small>(ยังไม่ได้ตั้งค่าลิงก์)</small></span>`,
  lk=vis.filter(m=>!m.parent).sort(byo).map(m=>{const ch=vis.filter(c=>c.parent===m.id).sort(byo);if(!ch.length)return m.kind==='heading'||!m.href?'':`<a href="${E(m.href)}" class="${act(m)?'on':''}"${tg(m)}>${lb(m)}</a>`;const it=(m.kind!=='heading'&&m.href?[m]:[]).concat(ch);return `<div class="dd${it.some(act)?' act':''}"><button type="button" class="ddb" aria-haspopup="true" aria-expanded="false" onclick="ddt(this)">${lb(m)} ${ic('chev')}</button><div class="dd-m"><div class="dd-i">${it.map(c=>A(c,act(c)?'on':'')).join('')}</div></div></div>`}).join('');
- return `<header><div class="hw"><nav><a class="logo" href="#/" aria-label="${E(s.nameEn)}">${kitMark(32)}<span class="ln"><span class="le">${E(s.nameEn)}</span><span class="lt">${E(s.nameTh)}</span></span></a><button class="burger" aria-label="เมนู" onclick="nv()">${ic('menu')}</button><div class="links">${lk}</div></nav>${themeBtn()}<a class="lock" href="#/admin" aria-label="เข้าสู่ระบบหลังบ้าน" title="เข้าสู่ระบบหลังบ้าน">${ic('lock')}</a></div></header>${body}
+ return `<header><div class="hw"><nav><a class="logo" href="#/" aria-label="${E(s.nameEn)}">${kitMark(32)}<span class="ln"><span class="le">${E(s.nameEn)}</span><span class="lt">${E(s.nameTh)}</span></span></a><button class="burger" aria-label="เมนู" onclick="nv()">${ic('menu')}</button><div class="links">${lk}</div></nav>${soundBtn()}${themeBtn()}<a class="lock" href="#/admin" aria-label="Staff Only" title="Staff Only">${ic('lock')}</a></div></header>${body}
  <footer><div class="w"><b>${E(s.nameTh)}</b><br>${E(s.nameEn)} (${BRAND.short})${s.footer?`<p class="pl">${E(s.footer)}</p>`:''}${(fl=>fl.length?`<p class="fl">${fl.map(m=>`<a href="${E(m.href)}"${tg(m)}>${E(m.label)}</a>`).join('')}</p>`:'')(vis.filter(m=>!m.parent&&m.href&&m.kind!=='heading').sort(byo))}</div></footer>`}
 function closeDd(){document.querySelectorAll('.dd.open').forEach(d=>{d.classList.remove('open');d.querySelector('.ddb').setAttribute('aria-expanded','false')})}
 function ddt(b){const d=b.parentElement,o=!d.classList.contains('open');closeDd();d.classList.toggle('open',o);b.setAttribute('aria-expanded',o)}
@@ -156,7 +156,7 @@ if(!DBH)return say(dbOff(),false);try{await putDoc('settings',Object.assign({},g
 const PUB={p(sl){const q=getPages().find(x=>x.slug===sl);return q&&q.status==='published'?pageView(q):nf()},preview(id){const q=pgById(id);return q?pageView(q,1):nf()}};
 /* ===== Admin: shell ===== */
 const AG=[['ภาพรวม',[['dash','แดชบอร์ด']]],['จัดการเว็บไซต์',[['home','เนื้อหาหน้าแรก'],['pages','จัดการเมนูและหน้าเว็บ'],['menu','แก้ไขเมนูแบบละเอียด'],['events','จัดการกิจกรรมปฏิทิน']]],['ตั้งค่า',[['settings','การตั้งค่าเว็บไซต์']]]];
-function adminNav(sec){return `<aside aria-label="เมนูหลังบ้าน"><b class="ab">${kitTile(30)}<span>Admin · ${BRAND.short}</span>${themeBtn()}</b><br><a href="#/">&#8592; ดูเว็บไซต์</a><small style="display:block;opacity:.7;margin:6px 0;word-break:break-all">${E(Auth.email)}</small><button type="button" class="btn s" onclick="doLogout()">ออกจากระบบ</button>${AG.map(([g,it])=>`<div class="ag">${g}</div>${it.map(([k,t])=>{const on=sec===k;return `<a href="#/admin/${k}" class="${on?'on':''}"${on?' aria-current="page"':''}>${t}</a>`}).join('')}`).join('')}</aside>`}
+function adminNav(sec){return `<aside aria-label="เมนูหลังบ้าน"><b class="ab">${kitTile(30)}<span>Admin · ${BRAND.short}</span>${soundBtn()}${themeBtn()}</b><br><a href="#/">&#8592; ดูเว็บไซต์</a><small style="display:block;opacity:.7;margin:6px 0;word-break:break-all">${E(Auth.email)}</small><button type="button" class="btn s" onclick="doLogout()">ออกจากระบบ</button>${AG.map(([g,it])=>`<div class="ag">${g}</div>${it.map(([k,t])=>{const on=sec===k;return `<a href="#/admin/${k}" class="${on?'on':''}"${on?' aria-current="page"':''}>${t}</a>`}).join('')}`).join('')}</aside>`}
 function sbt(){sbc=!sbc;render()}
 function admin(parts){if(!Auth.canAccessAdmin())return loginView();const sec=parts[0]||'dash';if(sec!=='home')WC.hm=null;let main;
  if(sec==='dash')main=dashboard();else if(sec==='pages'&&parts[1]==='edit')main=pageEditor(parts[2]);else if(sec==='pages')main=pagesAdmin();else if(sec==='home')main=homeAdmin();else if(sec==='menu')main=menuAdmin();else if(sec==='events'&&parts[1]==='edit')main=eventEditor(parts[2]);else if(sec==='events')main=eventsAdmin();else if(sec==='settings')main=settingsAdmin();else main='<p>ไม่พบเมนู</p>';
@@ -243,8 +243,43 @@ function settingsAdmin(){const s=getSet();return `<h1>การตั้งค�
 async function setSave(){const d=new FormData($('af')),o={};SETF.forEach(([k])=>o[k]=STRIP(d.get(k)||'').trim());if(!o.nameTh)return say('ต้องระบุชื่อเว็บไซต์',false);if(!DBH)return say(dbOff(),false);try{await putDoc('settings',Object.assign({},getSH('settings')||{},o));say('บันทึกการตั้งค่าเรียบร้อย')}catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
 /* ===== Router ===== */
 
+/* ===== เอฟเฟกต์เสียง (สังเคราะห์ด้วย Web Audio ไม่มีไฟล์เสียง; เริ่มหลังผู้ใช้โต้ตอบครั้งแรกเท่านั้น) ===== */
+const SND={on:true,vol:50,ctx:null,master:null,ready:false,nav:false};
+(function(){try{const v=JSON.parse(localStorage.getItem('kit-sound')||'null');if(v){if(typeof v.on==='boolean')SND.on=v.on;if(Number.isFinite(+v.vol))SND.vol=Math.max(0,Math.min(100,Math.round(+v.vol)))}}catch(e){}})();
+const sndSave=()=>{try{localStorage.setItem('kit-sound',JSON.stringify({on:SND.on,vol:SND.vol}))}catch(e){}};
+const SND_ICON=(off)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5z"/>${off?'<path d="M22 9l-6 6M16 9l6 6"/>':'<path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/>'}</svg>`;
+const sndLabel=()=>SND.on&&SND.vol>0?'ปิดเสียงเอฟเฟกต์':'เปิดเสียงเอฟเฟกต์';
+const soundBtn=()=>`<div class="sndw"><button type="button" class="snd" onclick="sndToggle()" aria-pressed="${SND.on}" title="${sndLabel()}" aria-label="${sndLabel()}">${SND_ICON(!SND.on||SND.vol===0)}</button><div class="sndp" role="group" aria-label="ระดับเสียง"><input type="range" class="sndr" min="0" max="100" step="1" value="${SND.vol}" oninput="sndVol(this.value)" onchange="sndPrev()" aria-label="ระดับเสียง" aria-valuetext="${SND.vol}%"><span class="sndv">${SND.vol}%</span></div></div>`;
+function sndSync(){try{document.querySelectorAll('.sndw').forEach(w=>{const b=w.querySelector('.snd'),r=w.querySelector('.sndr'),t=w.querySelector('.sndv');if(b){b.innerHTML=SND_ICON(!SND.on||SND.vol===0);b.title=sndLabel();b.setAttribute('aria-label',sndLabel());b.setAttribute('aria-pressed',String(SND.on))}if(r&&String(r.value)!==String(SND.vol)){r.value=SND.vol;r.setAttribute('aria-valuetext',SND.vol+'%')}if(t)t.textContent=SND.vol+'%'})}catch(e){}}
+function sndInit(){if(SND.ready)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!SND.ctx){SND.ctx=new AC();SND.master=SND.ctx.createGain();SND.master.connect(SND.ctx.destination)}SND.ready=true}catch(e){}}
+function sndWake(){try{if(!SND.ready)sndInit();if(SND.ctx&&SND.ctx.state==='suspended')SND.ctx.resume()}catch(e){}}
+function sndNote(f0,f1,dur,g,delay){const x=SND.ctx;if(!x)return;const t=x.currentTime+(delay||0),o=x.createOscillator(),e=x.createGain();o.type='sine';o.frequency.setValueAtTime(f0,t);if(f1!==f0)o.frequency.exponentialRampToValueAtTime(f1,t+dur);e.gain.setValueAtTime(0.0001,t);e.gain.exponentialRampToValueAtTime(g,t+0.012);e.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(e);e.connect(SND.master);o.start(t);o.stop(t+dur+0.03)}
+const SNDFX={click:()=>{sndNote(1040,820,0.07,0.5)},nav:()=>{sndNote(660,880,0.11,0.45);sndNote(990,1320,0.14,0.3,0.07)},open:()=>{sndNote(520,780,0.11,0.45)},close:()=>{sndNote(780,520,0.1,0.35)},tick:()=>{sndNote(880,880,0.05,0.4)}};
+function sndPlay(k){try{if(!SND.on||SND.vol<=0||!SND.ready||!SND.ctx||SND.ctx.state!=='running')return;SND.master.gain.value=Math.pow(SND.vol/100,1.6)*0.5;SNDFX[k]&&SNDFX[k]()}catch(e){}}
+function sndToggle(){sndWake();if(!SND.on&&SND.vol===0)SND.vol=50;else SND.on=!SND.on;sndSave();sndSync();if(SND.on)sndPlay('tick');const w=document.querySelector('.sndw');if(w&&w.classList)w.classList.add('open')}
+function sndVol(v){sndWake();SND.vol=Math.max(0,Math.min(100,Math.round(+v)||0));if(SND.vol>0)SND.on=true;sndSave();sndSync()}
+function sndPrev(){sndWake();sndPlay('tick')}
+(function(){try{
+ const first=()=>sndWake();
+ ['pointerdown','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,first,{capture:true,passive:true}));
+ document.addEventListener('click',e=>{try{const t=e.target&&e.target.closest?e.target:null;if(!t)return;
+  if(!t.closest('.sndw'))document.querySelectorAll('.sndw.open').forEach(w=>w.classList.remove('open'));
+  if(t.closest('.sndp'))return;
+  const el=t.closest('button,a,[role="button"],.cd,.ev,.mh');if(!el)return;
+  if(el.classList.contains('snd'))return;
+  const oc=el.getAttribute('onclick')||'';
+  if(el.classList.contains('ddb')){sndPlay(el.getAttribute('aria-expanded')==='true'?'open':'close');return}
+  if(el.classList.contains('burger')||/\bsbt\(|\bnv\(/.test(oc)){sndPlay('open');return}
+  if(/\bcalClose\(|innerHTML=''/.test(oc)||el.classList.contains('mx')){sndPlay('close');return}
+  if(/\bqask\(|\bqren\(|\bqdel\(|\bevask\(|\bpask\(|\bmask\(|\bcalEv\(/.test(oc)){sndPlay('open');return}
+  const h=el.tagName==='A'?(el.getAttribute('href')||''):'';
+  if(h.startsWith('#/')&&h!==(location.hash||'#/'))return;
+  sndPlay('click')}catch(er){}},true);
+ addEventListener('hashchange',()=>{if(SND.nav)sndPlay('nav')});
+ setTimeout(()=>{SND.nav=true},0);
+}catch(e){}})();
 function setTitle(p){const s=getSet();let t=s.nameTh+' | '+s.nameEn+' ('+BRAND.short+')';if(p[0]==='admin')t='Admin · '+BRAND.short+' | '+s.nameTh;else if(p[0]==='p'){const q=getPages().find(x=>x.slug===p[1]&&x.status==='published');if(q)t=q.title+' | '+s.nameTh}document.title=t}
 function render(){const h=location.hash||'#/',p=h.replace(/^#\/?/,'').split('/');if(h!==last){if(innerWidth<760)sbc=true;toast=null;WC={};last=h}
  setTitle(p);let html;try{if(p[0]==='admin')html=admin(p.slice(1));else html=shell(p[0]===''?homeView():PUB[p[0]]?PUB[p[0]](p[1]):nf())}catch(e){html='<div class="w sec"><div class="msg er">เกิดข้อผิดพลาด: '+E(e.message)+'</div></div>'}
- const y=scrollY;$('app').innerHTML=html;if(h===last&&!document.activeElement.matches('input,textarea'))scrollTo(0,y)}
+ const y=scrollY;$('app').innerHTML=html;sndSync();if(h===last&&!document.activeElement.matches('input,textarea'))scrollTo(0,y)}
 addEventListener('hashchange',()=>{render();scrollTo(0,0)});render();initDb();document.addEventListener('click',e=>{if(!e.target.closest('.dd'))closeDd()});document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('md').innerHTML='';const d=document.activeElement&&document.activeElement.closest('.dd');closeDd();if(d)document.activeElement.blur()}});
