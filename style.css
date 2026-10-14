@@ -361,3 +361,7 @@ footer{position:relative;clear:both}
 .fqprs select{flex:2 1 260px;min-width:0}
 .pvt td .tag{justify-self:start}
 .pvt td::before{font-weight:400}
+
+/* ค้นหารายวิชา (หลังบ้าน) */
+.cqw{overflow-x:auto}.cqt th,.cqt td{padding:8px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}.cqt th{font-size:.85rem;white-space:nowrap}
+@media(max-width:760px){.cqt,.cqt tbody,.cqt tr,.cqt td{display:block}.cqt thead{display:none}.cqt tr{border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:8px 0;background:var(--surface)}.cqt td{border:0;padding:3px 0}.cqt td[data-l]::before{content:attr(data-l)": ";opacity:.65;font-size:.8rem}}

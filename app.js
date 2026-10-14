@@ -155,11 +155,11 @@ for(const [l,u] of [[h.b1t,h.b1u],[h.b2t,h.b2u]])if((l&&!okL(u))||(!l&&u))return
 if(!DBH)return say(dbOff(),false);try{await putDoc('settings',Object.assign({},getSH('settings')||{},{home:h,footer:STRIP(d.get('f')||'').trim()}));WC.hm=null;say('บันทึกเนื้อหาหน้าแรกเรียบร้อย ผู้เข้าชมเห็นทันที')}catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
 const PUB={p(sl){const q=getPages().find(x=>x.slug===sl);return q&&q.status==='published'?pageView(q):nf()},preview(id){const q=pgById(id);return q?pageView(q,1):nf()}};
 /* ===== Admin: shell ===== */
-const AG=[['ภาพรวม',[['dash','แดชบอร์ด']]],['จัดการเว็บไซต์',[['home','เนื้อหาหน้าแรก'],['pages','จัดการเมนูและหน้าเว็บ'],['menu','แก้ไขเมนูแบบละเอียด'],['events','จัดการกิจกรรมปฏิทิน'],['campus','จัดการแผนผังสถาบัน']]],['คณะและหลักสูตร',[['fgroups','จัดการกลุ่มคณะ'],['faculties','จัดการคณะและวิทยาลัย'],['majors','จัดการสาขาวิชา'],['programs','จัดการหลักสูตร'],['typo','ตั้งค่าตัวอักษร']],true],['ตั้งค่า',[['settings','การตั้งค่าเว็บไซต์']]]];
+const AG=[['ภาพรวม',[['dash','แดชบอร์ด']]],['จัดการเว็บไซต์',[['home','เนื้อหาหน้าแรก'],['pages','จัดการเมนูและหน้าเว็บ'],['menu','แก้ไขเมนูแบบละเอียด'],['events','จัดการกิจกรรมปฏิทิน'],['campus','จัดการแผนผังสถาบัน']]],['คณะและหลักสูตร',[['fgroups','จัดการกลุ่มคณะ'],['faculties','จัดการคณะและวิทยาลัย'],['majors','จัดการสาขาวิชา'],['programs','จัดการหลักสูตร'],['courses','ค้นหารายวิชา'],['typo','ตั้งค่าตัวอักษร']],true],['ตั้งค่า',[['settings','การตั้งค่าเว็บไซต์']]]];
 function adminNav(sec){return `<aside aria-label="เมนูหลังบ้าน"><b class="ab">${kitTile(30)}<span>Admin · ${BRAND.short}</span>${soundBtn()}${themeBtn()}</b><br><a href="#/">&#8592; ดูเว็บไซต์</a><small style="display:block;opacity:.7;margin:6px 0;word-break:break-all">${E(Auth.email)}</small><button type="button" class="btn s" onclick="doLogout()">ออกจากระบบ</button>${AG.map(([g,it,fold])=>{const ln=it.map(([k,t])=>{const on=sec===k;return `<a href="#/admin/${k}" class="${on?'on':''}"${on?' aria-current="page"':''}>${t}</a>`}).join('');return fold?`<details class="agd"${FQN.open||it.some(x=>x[0]===sec)?' open':''} ontoggle="FQN.open=this.open"><summary class="ag">${g}</summary>${ln}</details>`:`<div class="ag">${g}</div>${ln}`}).join('')}</aside>`}
 function sbt(){sbc=!sbc;render()}
 function admin(parts){if(!Auth.canAccessAdmin())return loginView();const sec=parts[0]||'dash';if(sec!=='home')WC.hm=null;let main;
- if(sec==='dash')main=dashboard();else if(sec==='pages'&&parts[1]==='edit')main=pageEditor(parts[2]);else if(sec==='pages')main=pagesAdmin();else if(sec==='home')main=homeAdmin();else if(sec==='menu')main=menuAdmin();else if(sec==='events'&&parts[1]==='edit')main=eventEditor(parts[2]);else if(sec==='events')main=eventsAdmin();else if(sec==='campus'&&parts[1]==='edit')main=cmpEditor(parts[2]);else if(sec==='campus')main=campusAdmin();else if(FQE[sec])main=parts[1]==='edit'?fqEditor(sec,parts[2]):fqAdmin(sec);else if(sec==='typo')main=typoAdmin();else if(sec==='settings')main=settingsAdmin();else main='<p>ไม่พบเมนู</p>';
+ if(sec==='dash')main=dashboard();else if(sec==='pages'&&parts[1]==='edit')main=pageEditor(parts[2]);else if(sec==='pages')main=pagesAdmin();else if(sec==='home')main=homeAdmin();else if(sec==='menu')main=menuAdmin();else if(sec==='events'&&parts[1]==='edit')main=eventEditor(parts[2]);else if(sec==='events')main=eventsAdmin();else if(sec==='campus'&&parts[1]==='edit')main=cmpEditor(parts[2]);else if(sec==='campus')main=campusAdmin();else if(sec==='courses')main=parts[1]==='edit'?cqEditor(parts[2]):cqAdmin();else if(FQE[sec])main=parts[1]==='edit'?fqEditor(sec,parts[2]):fqAdmin(sec);else if(sec==='typo')main=typoAdmin();else if(sec==='settings')main=settingsAdmin();else main='<p>ไม่พบเมนู</p>';
  return `<div class="adm${sbc?' c':''}">${adminNav(sec)}<main><button class="btn s" onclick="sbt()" aria-expanded="${!sbc}" aria-label="ย่อหรือขยายเมนู">${ic('menu')} เมนู</button>${toast?`<div class="msg ${toast.ok?'ok':'er'}">${E(toast.t)}</div>`:''}${main}</main></div>`}
 const dbBanner=()=>`<div class="msg ${DBH&&CW!==false?'ok':'er'}">${DBH?(CW===false?'เชื่อมต่อฐานข้อมูลแล้ว แต่บัญชีนี้ไม่มีสิทธิ์เขียนข้อมูล (ดูได้อย่างเดียว) ต้องเป็นเจ้าของหรือผู้แก้ไข':'เชื่อมต่อ Supabase แล้ว บันทึกลงฐานข้อมูลจริง (เฉพาะทีมงานที่ได้รับอนุญาต)'):dbOff()}</div>`;
 /* ===== Admin: dashboard ===== */
@@ -241,6 +241,74 @@ async function msave(){msync();mnorm();const M=WC.menu,pl=()=>WC.pg||(WC.pg=clon
 const SETF=[['nameTh','ชื่อเว็บไซต์ (ไทย)','t'],['nameEn','ชื่อภาษาอังกฤษ','t'],['footer','ข้อความท้ายเว็บ (ว่างได้)','a']];
 function settingsAdmin(){const s=getSet();return `<h1>การตั้งค่าเว็บไซต์</h1>${dbBanner()}<form id="af" onsubmit="return false">${SETF.map(([k,l,t])=>`<label>${l}</label>${t==='a'?`<textarea name="${k}">${E(s[k])}</textarea>`:`<input name="${k}" value="${E(s[k])}">`}`).join('')}<p><button type="button" class="btn b" onclick="setSave()">บันทึก</button></p></form>`}
 async function setSave(){const d=new FormData($('af')),o={};SETF.forEach(([k])=>o[k]=STRIP(d.get(k)||'').trim());if(!o.nameTh)return say('ต้องระบุชื่อเว็บไซต์',false);if(!DBH)return say(dbOff(),false);try{await putDoc('settings',Object.assign({},getSH('settings')||{},o));say('บันทึกการตั้งค่าเรียบร้อย')}catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
+/* ===== Admin: ค้นหารายวิชา (Course Search) — MVP รอบนำร่อง =====
+   ไม่มีตารางรายวิชากลางในระบบเดิม: รายวิชาเก็บฝังในแผนการศึกษาของแต่ละหลักสูตร (programs[].plan[].terms[].courses[])
+   จึงสร้าง "ดัชนีรายวิชากลาง" จากข้อมูลเดิมโดยรวมตามรหัสวิชา (Course = รหัสวิชา, CurriculumCourse = รายการวิชาในแต่ละหลักสูตร)
+   แก้ข้อมูลกลางครั้งเดียว ระบบเขียนค่าเดียวกันกลับทุกหลักสูตรที่ใช้รหัสนั้น (ไม่แตะประเภทวิชา/วิชาบังคับก่อน/การซ่อนของแต่ละหลักสูตร) */
+const CQ={q:'',fac:'',maj:'',lv:'',n:50};
+const CQ_F=['code','name','nameEn','credits','desc','descEn'];
+const cqNorm=c=>String(c||'').trim().replace(/\s+/g,'').toUpperCase();
+const cqRe=/^\d+(\.\d+)?(\s*\(\d+-\d+-\d+\))?$/;
+function cqIndex(src){const M=new Map(),mj=new Map(fqM().map(x=>[x.id,x])),fc=new Map(fqF().map(x=>[x.id,x]));
+ (src||fqP()).forEach(p=>{const m=mj.get(p.majorId),f=m&&fc.get(m.facultyId);fqCsAll(p.plan).forEach(({c})=>{const k=cqNorm(c.code);if(!k)return;
+  let e=M.get(k);if(!e){e={key:k,uses:[]};CQ_F.forEach(x=>e[x]='');M.set(k,e)}
+  CQ_F.forEach(x=>{if(!e[x]&&c[x])e[x]=c[x]});e.uses.push({p,m,f,c})})});
+ M.forEach(e=>{e.mixed=e.uses.some(u=>CQ_F.some(x=>String(u.c[x]||'')!==String(e[x]||'')));e.lvs=[...new Set(e.uses.map(u=>u.p.level))]});
+ return M}
+function cqHay(e){return [e.code,e.name,e.nameEn,...e.uses.flatMap(u=>[u.p.nameTh,u.m&&u.m.nameTh,u.f&&u.f.nameTh,fqLv(u.p.level)])].join(' ').toLowerCase()}
+function cqFilter(){const q=CQ.q.trim().toLowerCase();
+ return [...cqIndex().values()].filter(e=>(!q||cqHay(e).includes(q))&&(!CQ.fac||e.uses.some(u=>u.f&&u.f.id===CQ.fac))&&(!CQ.maj||e.uses.some(u=>u.m&&u.m.id===CQ.maj))&&(!CQ.lv||e.uses.some(u=>u.p.level===CQ.lv)))
+  .sort((a,b)=>a.key.localeCompare(b.key))}
+function cqSet(k,v){CQ[k]=v;if(k==='fac'&&CQ.maj&&!fqM().some(m=>m.id===CQ.maj&&m.facultyId===v))CQ.maj='';if(k!=='n')CQ.n=50;
+ const a=document.activeElement,id=a&&a.id==='cqq'?a.selectionStart:null;render();if(id!=null){const n=$('cqq');if(n){n.focus();try{n.setSelectionRange(id,id)}catch(e){}}}}
+const cqUseTxt=e=>{const s=new Set();e.uses.forEach(u=>s.add((u.f?u.f.nameTh:'ไม่มีคณะ')+' › '+(u.m?u.m.nameTh:'ไม่มีสาขา')));return [...s]};
+function cqAdmin(){const L=cqFilter(),tot=cqIndex().size,vis=L.slice(0,CQ.n),
+ fo=fqF().slice().sort((a,b)=>(a.nameTh||'').localeCompare(b.nameTh||'')),mo=fqM().filter(m=>!CQ.fac||m.facultyId===CQ.fac).sort((a,b)=>(a.nameTh||'').localeCompare(b.nameTh||''));
+ const op=(a,v,l)=>`<option value="${E(v)}"${a===v?' selected':''}>${E(l)}</option>`;
+ return `<h1>ค้นหารายวิชา</h1><p>ค้นหาและแก้ไขข้อมูลกลางของรายวิชาจากทุกหลักสูตรในที่เดียว วิชาที่มีรหัสเดียวกันถือเป็นวิชาเดียวกันและจะอัปเดตตรงกันทุกหลักสูตร</p>${dbBanner()}
+ <div class="g2"><div><label for="cqq">ค้นหา (รหัสวิชา ชื่อวิชาไทย/อังกฤษ คณะ สาขา)</label><input id="cqq" type="search" value="${E(CQ.q)}" oninput="cqSet('q',this.value)" placeholder="เช่น ENG101 หรือ แคลคูลัส"></div>
+ <div><label for="cqlv">ระดับการศึกษา</label><select id="cqlv" onchange="cqSet('lv',this.value)">${op(CQ.lv,'','ทุกระดับ')}${FQ_LV.map(([k,l])=>op(CQ.lv,k,l)).join('')}</select></div>
+ <div><label for="cqfa">คณะ/วิทยาลัย</label><select id="cqfa" onchange="cqSet('fac',this.value)">${op(CQ.fac,'','ทุกคณะ')}${fo.map(f=>op(CQ.fac,f.id,f.nameTh)).join('')}</select></div>
+ <div><label for="cqmj">สาขาวิชา${CQ.fac?'':' (เลือกคณะเพื่อกรองเฉพาะสาขาของคณะนั้น)'}</label><select id="cqmj" onchange="cqSet('maj',this.value)">${op(CQ.maj,'','ทุกสาขา')}${mo.map(m=>op(CQ.maj,m.id,m.nameTh)).join('')}</select></div></div>
+ <p class="evm" role="status" aria-live="polite">พบ ${L.length} จาก ${tot} รายวิชา <button type="button" class="btn s" onclick="cqReload()">โหลดข้อมูลล่าสุด</button></p>
+ ${tot?'':'<div class="hint"><p>ยังไม่มีรายวิชาในระบบ รายวิชาจะแสดงที่นี่เมื่อมีการเพิ่มรายวิชาในแผนการศึกษาของหลักสูตร (จัดการหลักสูตร)</p></div>'}
+ ${L.length?`<div class="cqw"><table class="cqt"><thead><tr><th>รหัสวิชา</th><th>ชื่อวิชาภาษาไทย</th><th>ชื่อวิชาภาษาอังกฤษ</th><th>หน่วยกิต</th><th>คณะและสาขาที่เปิดสอน</th><th>ระดับ</th><th></th></tr></thead><tbody>${vis.map(e=>{const us=cqUseTxt(e);return `<tr><td data-l="รหัสวิชา"><b>${E(e.code)}</b></td><td data-l="ชื่อไทย">${E(e.name)}${e.mixed?' <span class="tag" title="ข้อมูลในแต่ละหลักสูตรยังไม่ตรงกัน บันทึกครั้งเดียวจะทำให้ตรงกัน">ไม่ตรงกัน</span>':''}</td><td data-l="ชื่ออังกฤษ">${E(e.nameEn)}</td><td data-l="หน่วยกิต">${E(e.credits)}</td><td data-l="คณะ/สาขา">${us.slice(0,3).map(E).join('<br>')}${us.length>3?`<br><small>และอีก ${us.length-3} สาขา</small>`:''}<br><small>${e.uses.length} หลักสูตร</small></td><td data-l="ระดับ">${e.lvs.map(fqLv).map(E).join(', ')}</td><td><a class="btn s" href="#/admin/courses/edit/${encodeURIComponent(e.key)}">ดู/แก้ไข</a></td></tr>`}).join('')}</tbody></table></div>${L.length>vis.length?`<p><button type="button" class="btn" onclick="cqSet('n',CQ.n+50)">แสดงเพิ่ม (เหลืออีก ${L.length-vis.length})</button></p>`:''}`:(tot?'<p>ไม่พบรายวิชาที่ตรงกับเงื่อนไข</p>':'')}`}
+async function cqReload(){if(!DBH)return say(dbOff(),false);try{await loadAll();WC={};say('โหลดข้อมูลล่าสุดแล้ว')}catch(e){dbErr('โหลดข้อมูลไม่สำเร็จ',e)}}
+const cqPick=(e)=>{const o={};CQ_F.forEach(x=>o[x]=e[x]||'');return o};
+function cqEditor(raw){let k='';try{k=cqNorm(decodeURIComponent(raw||''))}catch(er){}
+ const e=cqIndex().get(k);
+ if(!e)return `<p><a class="bk" href="#/admin/courses">← ค้นหารายวิชา</a></p><div class="msg er">ไม่พบรายวิชารหัส "${E(k)}" (อาจถูกแก้ไขรหัสหรือลบโดยผู้ดูแลคนอื่น)</div>`;
+ if(!WC.cq||WC.cq.key!==k){const snap={};e.uses.forEach(u=>snap[u.c.id]=JSON.stringify(CQ_F.map(x=>String(u.c[x]||''))));WC.cq={key:k,f:cqPick(e),snap}}
+ const f=WC.cq.f,fi=(n,l,req,ph)=>`<label for="cq_${n}">${l}${req?' *':''}</label><input id="cq_${n}" name="${n}" value="${E(f[n])}"${ph?` placeholder="${ph}"`:''}${req?' aria-required="true"':''}>`;
+ return `<p><a class="bk" href="#/admin/courses">← ค้นหารายวิชา</a></p><h1>${E(e.code)} ${E(e.name)}</h1>${dbBanner()}
+ ${e.mixed?'<div class="msg">ข้อมูลรายวิชานี้ในแต่ละหลักสูตรยังไม่ตรงกัน เมื่อบันทึกจะทำให้ทุกหลักสูตรใช้ค่าเดียวกับที่แสดงด้านล่าง</div>':''}
+ <h2>ข้อมูลกลางของรายวิชา</h2><p>การแก้ไขจะมีผลกับทุกหลักสูตรที่ใช้รหัสวิชานี้ (${e.uses.length} หลักสูตร)</p>
+ <form id="cqf" onsubmit="return false" oninput="cqSync()">${fi('code','รหัสวิชา',1)}<div class="g2"><div>${fi('name','ชื่อวิชาภาษาไทย',1)}</div><div>${fi('nameEn','ชื่อวิชาภาษาอังกฤษ',1)}</div></div>${fi('credits','จำนวนหน่วยกิต',1,'3 หรือ 3(3-0-6)')}
+ <label for="cq_desc">คำอธิบายรายวิชา (ถ้ามี)</label><textarea id="cq_desc" name="desc" rows="4">${E(f.desc)}</textarea>
+ <label for="cq_descEn">คำอธิบายรายวิชาภาษาอังกฤษ (ถ้ามี)</label><textarea id="cq_descEn" name="descEn" rows="4">${E(f.descEn)}</textarea>
+ <p><button type="button" class="btn b" onclick="cqSave()">บันทึก</button> <a class="btn" href="#/admin/courses">ยกเลิก</a></p></form>
+ <h2>หลักสูตรที่ใช้รายวิชานี้</h2><p><small>คณะ สาขา และระดับการศึกษาของวิชามาจากหลักสูตรที่ใช้วิชานี้ ปรับได้ที่หน้าแก้ไขหลักสูตร (ประเภทวิชาและวิชาบังคับก่อนเป็นค่าของแต่ละหลักสูตร ไม่เปลี่ยนจากหน้านี้)</small></p>
+ ${e.uses.map(u=>`<div class="row"><b>${E(u.p.nameTh)}</b> ${stTag(u.p)}<br><small>${E(u.f?u.f.nameTh:'ไม่มีคณะ')} › ${E(u.m?u.m.nameTh:'ไม่มีสาขา')} · ${E(fqLv(u.p.level))} · ${E(csTy(u.c.type))}${u.c.show===false?' · ซ่อนอยู่':''}</small> <a class="btn s" href="#/admin/programs/edit/${E(u.p.id)}">เปิดหลักสูตร</a></div>`).join('')}`}
+function cqSync(){const fm=$('cqf');if(!fm||!WC.cq)return;const d=new FormData(fm);CQ_F.forEach(x=>{if(d.has(x))WC.cq.f[x]=String(d.get(x)||'')})}
+async function cqSave(){cqSync();const w=WC.cq;if(!w)return;if(!DBH)return say(dbOff(),false);
+ const f={};CQ_F.forEach(x=>f[x]=w.f[x].trim());
+ if(!f.code)return say('ต้องระบุรหัสวิชา',false);if(!f.name)return say('ต้องระบุชื่อวิชาภาษาไทย',false);if(!f.nameEn)return say('ต้องระบุชื่อวิชาภาษาอังกฤษ',false);
+ if(!f.credits)return say('ต้องระบุจำนวนหน่วยกิต',false);if(!cqRe.test(f.credits)||!(parseFloat(f.credits)>=0&&parseFloat(f.credits)<=30))return say('หน่วยกิตไม่ถูกต้อง (ใช้ เช่น 3 หรือ 3(3-0-6) และไม่เกิน 30)',false);
+ try{
+  const {data,error}=await SB.from('site_docs').select('key,data');if(error)throw error;
+  const row=(data||[]).find(r=>r.key==='programs'),P=Array.isArray(row&&row.data)?clone(row.data):[];
+  const hit=[],nk=cqNorm(f.code);
+  P.forEach(p=>fqCsAll(p.plan).forEach(({c})=>{if(cqNorm(c.code)===w.key)hit.push(c)}));
+  const cur={};hit.forEach(c=>cur[c.id]=JSON.stringify(CQ_F.map(x=>String(c[x]||''))));
+  const ids=Object.keys(w.snap),stale=ids.length!==hit.length||ids.some(i=>cur[i]!==w.snap[i]);
+  if(stale){if(row)SHR.programs=row.data;WC.cq=null;return say('รายวิชานี้ถูกผู้ดูแลคนอื่นแก้ไขหรือเปลี่ยนแปลงไปก่อนหน้า จึงยังไม่บันทึกทับ ระบบโหลดข้อมูลล่าสุดมาแสดงแล้ว กรุณาตรวจสอบและแก้ไขอีกครั้ง',false)}
+  if(nk!==w.key&&cqIndex(P).has(nk))return say('รหัสวิชา "'+f.code+'" มีอยู่แล้วในระบบ หากเป็นวิชาเดียวกันให้แก้ไขที่รายวิชานั้นแทน',false);
+  hit.forEach(c=>CQ_F.forEach(x=>{c[x]=f[x]}));
+  await putDoc('programs',P);
+  WC.cq=null;if(nk!==w.key){const h='#/admin/courses/edit/'+encodeURIComponent(nk);if(window.history&&history.replaceState)history.replaceState(null,'',h);else location.hash=h;last=h}
+  say('บันทึกเรียบร้อย อัปเดต '+hit.length+' หลักสูตรแล้ว')
+ }catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
+
 /* ===== Router ===== */
 
 /* ===== แผนผังสถาบัน (Campus Map): ข้อมูลใน site_docs key 'campus' + รูปใน Storage bucket 'campus' (ไม่มีข้อมูลตัวอย่าง) ===== */
