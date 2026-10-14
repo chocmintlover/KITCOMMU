@@ -352,6 +352,12 @@ const fqLv=k=>(FQ_LV.find(x=>x[0]===k)||FQ_LV[FQ_LV.length-1])[1];
 const fqArr=k=>{const v=getSH(k);return Array.isArray(v)?v.filter(x=>x&&x.id):[]};
 const fqG=()=>fqArr('fgroups'),fqF=()=>fqArr('faculties'),fqM=()=>fqArr('majors'),fqP=()=>fqArr('programs');
 const fqIsPub=x=>x.status==='published';
+/* ค่าเล่าเรียน (บาท/ภาคการศึกษา): เก็บใน programs[].tuition เป็นตัวเลขไม่ติดลบ หรือ '' เมื่อยังไม่มีข้อมูล (0 ถือเป็นค่าที่ระบุแล้ว) */
+const fqTuiParse=v=>{if(v==null)return null;if(typeof v==='number')return Number.isFinite(v)&&v>=0?v:NaN;if(typeof v!=='string')return NaN;const s=v.replace(/[\s,]/g,'');if(s==='')return null;return /^\d+(\.\d{1,2})?$/.test(s)?parseFloat(s):NaN};
+const fqTui=p=>{const n=fqTuiParse(p&&p.tuition);return n!=null&&Number.isFinite(n)?n:null};
+const fqBaht=n=>n.toLocaleString('th-TH',{minimumFractionDigits:0,maximumFractionDigits:2});
+const fqTuiTxt=n=>'ค่าเล่าเรียน '+fqBaht(n)+' บาท/ภาคการศึกษา';
+function fqTuiRange(ps){const a=ps.map(fqTui).filter(n=>n!=null);if(!a.length)return null;return {lo:Math.min(...a),hi:Math.max(...a),n:a.length,all:a.length===ps.length}}
 /* สิ่งที่ผู้เข้าชมเห็น: ต้องเผยแพร่ทุกระดับตั้งแต่กลุ่มลงมา (ซ่อนต้นสังกัด = ซ่อนรายการลูก) */
 function fqPub(){const G=fqG().filter(fqIsPub),gi=new Set(G.map(x=>x.id)),F=fqF().filter(f=>fqIsPub(f)&&gi.has(f.groupId)),fi=new Set(F.map(x=>x.id)),M=fqM().filter(m=>fqIsPub(m)&&fi.has(m.facultyId)),mi=new Set(M.map(x=>x.id)),P=fqP().filter(p=>fqIsPub(p)&&mi.has(p.majorId));return {G,F,M,P}}
 const FS={key:null,q:'',g:'',lv:''};
@@ -372,11 +378,14 @@ function facView(){if(FS.key!==location.hash){FS.key=location.hash;FS.q='';FS.g=
 function fqRefresh(){const l=$('fql');if(l)l.innerHTML=fqListHtml(fqPub());document.querySelectorAll('.fqc').forEach(b=>b.classList.toggle('on',FS[b.dataset.k]===b.dataset.v))}
 function fqFilter(){const i=$('fqq');FS.q=i?i.value.trim().toLowerCase():'';fqRefresh()}
 function fqSet(k,v){FS[k]=FS[k]===v&&v!==''?'':v;fqRefresh()}
+function fqFacTuition(f,D){const {Ps}=fqInfo(f,D),r=fqTuiRange(Ps);if(!r)return '';
+ const v=r.lo===r.hi?fqBaht(r.lo):fqBaht(r.lo)+' – '+fqBaht(r.hi);
+ return `<section class="fqs"><h2>ค่าเล่าเรียน</h2><div class="fqtu"><p class="fqtv"><span class="fqtl">ค่าเล่าเรียน</span> <b>${E(v)}</b> <span class="fqtn">บาท/ภาคการศึกษา</span></p><p class="evm">${r.lo===r.hi?'':'ค่าเล่าเรียนแตกต่างกันตามหลักสูตร '}${r.all?'':'(แสดงจากหลักสูตรที่ระบุไว้ '+r.n+' จาก '+Ps.length+' หลักสูตร) '}ดูค่าเล่าเรียนของแต่ละหลักสูตรได้ในหน้ารายละเอียดหลักสูตร</p></div></section>`}
 function facDetail(id){const D=fqPub(),f=D.F.find(x=>x.id===id);
  if(!f)return ('<div class="w sec"><h1>ไม่พบคณะหรือวิทยาลัยนี้</h1><p>อาจยังไม่เผยแพร่หรือถูกลบแล้ว</p><p><a class="bk" href="#/">← กลับหน้าแรก</a></p></div>');
  const lp=getPages().find(p=>p.status==='published'&&(p.sections||[]).some(s=>s.type==='faculties')),back=lp?'#/p/'+lp.slug:'#/',g=D.G.find(x=>x.id===f.groupId),fl=fqFlower(f),hasFl=fl.img||fl.nameTh||fl.nameEn||fl.meaning,{Ms}=fqInfo(f,D),blk=(t,v)=>v?`<section class="fqs"><h2>${t}</h2><p class="pl">${E(v)}</p></section>`:'';
- const prog=p=>`<a class="fqpr" href="#/program/${E(p.id)}"><span class="fqpn"><b>${E(p.nameTh)}</b>${p.nameEn?`<small>${E(p.nameEn)}</small>`:''}</span><span class="fqpt"><span class="tag">${E(fqLv(p.level))}</span><span class="tag">${p.open==='open'?'เปิดรับสมัคร':'ปิดรับสมัคร'}</span></span><span class="fqpm">ดูรายละเอียด →</span></a>`;
- return (`<div class="w sec fqd ty" style="${tyStyle(tyFac(f))}"><p><a class="bk" href="${E(back)}">← กลับหน้ารวมคณะและวิทยาลัย</a></p>${okU(f.cover)?`<div class="fqb"><img src="${E(f.cover)}" alt=""></div>`:''}<div class="fqh">${okU(f.logo)?`<img class="fql" src="${E(f.logo)}" alt="ตราสัญลักษณ์ ${E(f.nameTh)}">`:''}<div>${g?`<p class="evm">${E(g.name)}</p>`:''}<h1>${E(f.nameTh)}</h1>${f.nameEn?`<p class="evm">${E(f.nameEn)}</p>`:''}${f.abbr?`<span class="tag">${E(f.abbr)}</span>`:''}</div></div>${blk('เกี่ยวกับคณะ',f.about||f.brief)}${blk('ข้อมูลการรับสมัคร',f.admission)}${blk('ช่องทางติดต่อ',f.contact)}${fqBlocksHtml(f.blocks)}
+ const prog=p=>`<a class="fqpr" href="#/program/${E(p.id)}"><span class="fqpn"><b>${E(p.nameTh)}</b>${p.nameEn?`<small>${E(p.nameEn)}</small>`:''}</span><span class="fqpt"><span class="tag">${E(fqLv(p.level))}</span><span class="tag">${p.open==='open'?'เปิดรับสมัคร':'ปิดรับสมัคร'}</span></span>${fqTui(p)!=null?`<span class="fqpu">${E(fqTuiTxt(fqTui(p)))}</span>`:''}<span class="fqpm">ดูรายละเอียด →</span></a>`;
+ return (`<div class="w sec fqd ty" style="${tyStyle(tyFac(f))}"><p><a class="bk" href="${E(back)}">← กลับหน้ารวมคณะและวิทยาลัย</a></p>${okU(f.cover)?`<div class="fqb"><img src="${E(f.cover)}" alt=""></div>`:''}<div class="fqh">${okU(f.logo)?`<img class="fql" src="${E(f.logo)}" alt="ตราสัญลักษณ์ ${E(f.nameTh)}">`:''}<div>${g?`<p class="evm">${E(g.name)}</p>`:''}<h1>${E(f.nameTh)}</h1>${f.nameEn?`<p class="evm">${E(f.nameEn)}</p>`:''}${f.abbr?`<span class="tag">${E(f.abbr)}</span>`:''}</div></div>${blk('เกี่ยวกับคณะ',f.about||f.brief)}${fqFacTuition(f,D)}${blk('ข้อมูลการรับสมัคร',f.admission)}${blk('ช่องทางติดต่อ',f.contact)}${fqBlocksHtml(f.blocks)}
 ${hasFl?`<section class="fqs"><h2>ดอกไม้ประจำคณะ</h2><div class="fqfl">${fl.img?`<img src="${E(fl.img)}" alt="${E(fl.nameTh||'ดอกไม้ประจำคณะ')}">`:''}<div>${fl.nameTh?`<h3>${E(fl.nameTh)}</h3>`:''}${fl.nameEn?`<p class="evm">${E(fl.nameEn)}</p>`:''}${fl.meaning?`<p class="pl">${E(fl.meaning)}</p>`:''}</div></div></section>`:''}
 <section class="fqs"><h2>สาขาวิชาและหลักสูตร</h2>${Ms.length?Ms.map(m=>{const ps=D.P.filter(p=>p.majorId===m.id);return `<section class="fqm"><h3>${E(m.nameTh)}</h3>${m.nameEn?`<p class="evm">${E(m.nameEn)}</p>`:''}<p>${(m.levels||[]).map(l=>`<span class="tag">${E(fqLv(l))}</span>`).join('')}</p>${m.desc?`<p class="pl">${E(m.desc)}</p>`:''}${ps.length?`<div class="fqpl">${ps.map(prog).join('')}</div>`:'<p class="evm">ยังไม่มีข้อมูลหลักสูตร</p>'}</section>`}).join(''):'<div class="empty-ev">ยังไม่มีข้อมูลสาขาวิชาและหลักสูตร</div>'}</section></div>`)}
 PUB.faculty=facDetail;
@@ -490,6 +499,7 @@ function fqSyncX(ent,it,d,g){const has=n=>d.has(n);
 /* ตรวจและทำความสะอาดก่อนบันทึก: คืนข้อความผิดพลาดหรือ '' */
 function fqClean(ent,it){
  if(ent==='programs'){if(it.credits&&!/^\d{1,3}(\.\d+)?$/.test(it.credits))return 'จำนวนหน่วยกิตรวมต้องเป็นตัวเลข เช่น 132';
+  {const n=fqTuiParse(it.tuition);if(Number.isNaN(n))return 'ค่าเล่าเรียนต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป (ทศนิยมไม่เกิน 2 ตำแหน่ง) หรือเว้นว่างหากยังไม่มีข้อมูล';it.tuition=n==null?'':n}
   it.reqList=(it.reqList||[]).map(x=>String(x).trim()).filter(Boolean);it.careerList=(it.careerList||[]).map(x=>String(x).trim()).filter(Boolean);
   const re=/^\d+(\.\d+)?(\s*\(\d+-\d+-\d+\))?$/;
   for(const y of it.plan||[]){for(const t of y.terms||[]){t.courses=(t.courses||[]).filter(c=>c.code||c.name||c.credits||c.desc);for(const c of t.courses){if(!c.name)return 'รายวิชา'+(c.code?' '+c.code:'')+' ยังไม่ได้ใส่ชื่อวิชา';if(c.credits&&!re.test(c.credits))return 'หน่วยกิตของวิชา "'+c.name+'" ไม่ถูกต้อง (ใช้ เช่น 3 หรือ 3(3-0-6))'}}}
@@ -538,6 +548,7 @@ function pvQ(v){PV.q=v||'';pvDraw()}
 function pvClr(){PV.q='';const i=$('pvq');if(i){i.value='';i.focus()}pvDraw()}
 function pvAll(on){PV.all=!!on;pvDraw()}
 function pvTg(id,o){if(o)PV.open[id]=1;else delete PV.open[id]}
+function fqTuiBox(p){const n=fqTui(p);return n!=null?`<div class="fqtu" aria-label="ค่าเล่าเรียน"><p class="fqtv"><span class="fqtl">ค่าเล่าเรียน</span> <b>${E(fqBaht(n))}</b> <span class="fqtn">บาท/ภาคการศึกษา</span></p></div>`:`<div class="fqtu fqtu0"><p class="fqtv">ยังไม่ระบุค่าเล่าเรียน</p></div>`}
 function progDetail(id){const D=fqPub(),p=D.P.find(x=>x.id===id);
  if(!p)return ('<div class="w sec"><h1>ไม่พบหลักสูตรนี้</h1><p>อาจยังไม่เผยแพร่หรือถูกลบแล้ว</p><p><a class="bk" href="#/">← กลับหน้าแรก</a></p></div>');
  const m=D.M.find(x=>x.id===p.majorId),f=m&&D.F.find(x=>x.id===m.facultyId),t=tyFac(f),req=(p.reqList||[]).filter(Boolean),car=(p.careerList||[]).filter(Boolean),
@@ -546,7 +557,7 @@ function progDetail(id){const D=fqPub(),p=D.P.find(x=>x.id===id);
  sections=[fqSecH('คำอธิบายหลักสูตร',fqTx(p.desc)),fqSecH('วัตถุประสงค์และผลลัพธ์การเรียนรู้',so),fqSecH('ข้อมูลหลักสูตร',`<dl class="cmdl">${info.map(([l,v])=>`<dt>${l}</dt><dd>${E(v)}</dd>`).join('')}</dl>`),
   fqSecH('คุณสมบัติผู้สมัคร',req.length?fqUl(req):fqTx(p.requirements)),fqSecH('แผนการศึกษาและรายวิชา',fqPlanHtml(p.plan,p.id)),
   fqSecH('การฝึกงานหรือสหกิจศึกษา',fqTx(p.internship)),fqSecH('แนวทางประกอบอาชีพ',car.length?fqUl(car):fqTx(p.careers)),fqSecH('เงื่อนไขการสำเร็จการศึกษา',fqTx(p.graduation)),fqSecH('หมายเหตุเพิ่มเติม',fqTx(p.notes)),fqBlocksHtml(p.blocks)].join('');
- return (`<div class="w sec fqd ty" style="${tyStyle(t)}"><p><a class="bk" href="${f?'#/faculty/'+E(f.id):'#/'}">← กลับ${f?'หน้า'+E(f.nameTh):'หน้าแรก'}</a></p><div class="fqph"><h1>${E(p.nameTh)}</h1>${p.nameEn?`<p class="evm">${E(p.nameEn)}</p>`:''}${p.degree||p.degreeEn?`<p class="fqdg">${p.degree?E(p.degree):''}${p.degree&&p.degreeEn?' · ':''}${p.degreeEn?E(p.degreeEn):''}</p>`:''}<p><span class="tag">${E(fqLv(p.level))}</span><span class="tag">${p.open==='open'?'เปิดรับสมัคร':'ปิดรับสมัคร'}</span></p></div>${sections}</div>`)}
+ return (`<div class="w sec fqd ty" style="${tyStyle(t)}"><p><a class="bk" href="${f?'#/faculty/'+E(f.id):'#/'}">← กลับ${f?'หน้า'+E(f.nameTh):'หน้าแรก'}</a></p><div class="fqph"><h1>${E(p.nameTh)}</h1>${p.nameEn?`<p class="evm">${E(p.nameEn)}</p>`:''}${p.degree||p.degreeEn?`<p class="fqdg">${p.degree?E(p.degree):''}${p.degree&&p.degreeEn?' · ':''}${p.degreeEn?E(p.degreeEn):''}</p>`:''}<p><span class="tag">${E(fqLv(p.level))}</span><span class="tag">${p.open==='open'?'เปิดรับสมัคร':'ปิดรับสมัคร'}</span></p>${fqTuiBox(p)}</div>${sections}</div>`)}
 PUB.program=progDetail;
 
 /* ===== Admin: คณะและหลักสูตร (ตัวจัดการกลางใช้ร่วมกันทั้ง 4 ระดับ) ===== */
@@ -572,8 +583,8 @@ const FQE={
   label:m=>m.nameTh,sub:m=>(fqName(fqF(),m.facultyId)||'ไม่มีคณะต้นสังกัด')+' · '+(m.levels||[]).map(fqLv).join('/')+' · '+fqP().filter(p=>p.majorId===m.id).length+' หลักสูตร',kids:m=>fqP().filter(p=>p.majorId===m.id),kidName:'หลักสูตร',
   parent:()=>fqF(),pk:'facultyId',pn:'คณะ/วิทยาลัย',pl:'#/admin/faculties'},
  programs:{one:'หลักสูตร',title:'จัดการหลักสูตร',pre:'pg',get:fqP,
-  blank:()=>({majorId:AFV.major||'',nameTh:'',nameEn:'',degree:'',degreeEn:'',level:'bachelor',duration:'',credits:'',desc:'',objectives:'',outcomes:'',reqList:[],plan:[],internship:'',graduation:'',careerList:[],notes:'',blocks:[],open:'closed',status:'draft'}),
-  fields:[['','ข้อมูลหลักสูตรทั่วไป','hdr'],['majorId','สาขาวิชาต้นสังกัด','sel',1,()=>fqM().map(m=>[m.id,m.nameTh,fqName(fqF(),m.facultyId)||'(ไม่มีคณะ)'])],['nameTh','ชื่อหลักสูตรภาษาไทย','text',1],['nameEn','ชื่อหลักสูตรภาษาอังกฤษ','text'],['degree','ชื่อปริญญาภาษาไทย (ถ้ามี)','text'],['degreeEn','ชื่อปริญญาภาษาอังกฤษ (ถ้ามี)','text'],['level','ระดับการศึกษา','sel',1,()=>FQ_LV],['duration','ระยะเวลาศึกษา','text'],['credits','จำนวนหน่วยกิตรวม (ถ้ามี ใส่เป็นตัวเลข)','text'],['desc','คำอธิบายหลักสูตร','area8'],['objectives','วัตถุประสงค์ของหลักสูตร','area'],['outcomes','ผลลัพธ์การเรียนรู้ที่คาดหวัง','area'],['open','สถานะเปิดรับสมัคร','sel',0,()=>[['closed','ปิดรับสมัคร'],['open','เปิดรับสมัคร']]],
+  blank:()=>({majorId:AFV.major||'',nameTh:'',nameEn:'',degree:'',degreeEn:'',level:'bachelor',duration:'',credits:'',tuition:'',desc:'',objectives:'',outcomes:'',reqList:[],plan:[],internship:'',graduation:'',careerList:[],notes:'',blocks:[],open:'closed',status:'draft'}),
+  fields:[['','ข้อมูลหลักสูตรทั่วไป','hdr'],['majorId','สาขาวิชาต้นสังกัด','sel',1,()=>fqM().map(m=>[m.id,m.nameTh,fqName(fqF(),m.facultyId)||'(ไม่มีคณะ)'])],['nameTh','ชื่อหลักสูตรภาษาไทย','text',1],['nameEn','ชื่อหลักสูตรภาษาอังกฤษ','text'],['degree','ชื่อปริญญาภาษาไทย (ถ้ามี)','text'],['degreeEn','ชื่อปริญญาภาษาอังกฤษ (ถ้ามี)','text'],['level','ระดับการศึกษา','sel',1,()=>FQ_LV],['duration','ระยะเวลาศึกษา','text'],['credits','จำนวนหน่วยกิตรวม (ถ้ามี ใส่เป็นตัวเลข)','text'],['tuition','ค่าเล่าเรียน (บาท/ภาคการศึกษา)','num'],['desc','คำอธิบายหลักสูตร','area8'],['objectives','วัตถุประสงค์ของหลักสูตร','area'],['outcomes','ผลลัพธ์การเรียนรู้ที่คาดหวัง','area'],['open','สถานะเปิดรับสมัคร','sel',0,()=>[['closed','ปิดรับสมัคร'],['open','เปิดรับสมัคร']]],
   ['','คุณสมบัติผู้สมัคร','hdr'],['reqList','รายการคุณสมบัติผู้สมัคร (เพิ่มทีละข้อ)','list'],
   ['','แผนการศึกษาและรายวิชา','hdr'],['plan','','plan'],
   ['','ข้อมูลเพิ่มเติม','hdr'],['internship','การฝึกงานหรือสหกิจศึกษา (ถ้ามี)','area'],['graduation','เงื่อนไขการสำเร็จการศึกษา (ถ้ามี)','area'],['careerList','แนวทางประกอบอาชีพ (เพิ่มทีละข้อ)','list'],['notes','หมายเหตุเพิ่มเติม (ถ้ามี)','area'],['blocks','','blocks']],
@@ -612,6 +623,7 @@ function fqEditor(ent,id){const C=FQE[ent],isNew=id==='new';
  if(!WC.fq||WC.fqEnt!==ent||WC.fq.id!==(isNew?WC.fq.id:id)){const ex=isNew?null:C.get().find(x=>x.id===id);if(!isNew&&!ex)return `<p><a class="bk" href="#/admin/${ent}">← ${C.title}</a></p><h1>ไม่พบรายการ</h1>`;WC.fq=isNew?Object.assign({id:mkId(C.pre)},C.blank()):clone(ex);WC.fqNew=isNew;WC.fqEnt=ent;fqMig(WC.fq)}
  const it=WC.fq,fi=fd=>{const [k,l,t,req,opt]=fd,nm='f_'+k,v=it[k],lb=`<label for="${nm}">${l}${req?' *':''}</label>`;
   if(t==='text')return `${lb}<input id="${nm}" name="${nm}" value="${E(v)}">`;
+  if(t==='num')return `${lb}<input id="${nm}" name="${nm}" type="text" inputmode="decimal" autocomplete="off" placeholder="เช่น 25000 (เว้นว่างได้ถ้ายังไม่มีข้อมูล)" value="${E(v)}">`;
   if(t==='area'||t==='area8')return `${lb}<textarea id="${nm}" name="${nm}" rows="${t==='area8'?8:4}">${E(v)}</textarea>`;
   if(t==='sel'){const o=opt();let g=null,h='';o.forEach(([a,b,gr])=>{if(gr!==undefined&&gr!==g){if(g!==null)h+='</optgroup>';h+=`<optgroup label="${E(gr)}">`;g=gr}h+=`<option value="${E(a)}"${v===a?' selected':''}>${E(b)}</option>`});if(g!==null)h+='</optgroup>';return `${lb}<select id="${nm}" name="${nm}"><option value="">— เลือก —</option>${h}</select>`}
   if(t==='chk')return `<fieldset><legend>${l}</legend>${FQ_LV.map(([a,b])=>`<label style="display:inline-block;margin-right:14px"><input type="checkbox" name="${nm}" value="${a}"${(v||[]).includes(a)?' checked':''} style="width:auto"> ${b}</label>`).join('')}</fieldset>`;

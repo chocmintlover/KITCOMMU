@@ -320,3 +320,16 @@ details.pvd[open] .pvbt::before{content:"ซ่อน"}
 /* ให้ footer และคอนเทนเนอร์เนื้อหาอยู่ใน flow ปกติเสมอ ไม่ลอยทับรายการ */
 #app{display:flow-root}
 footer{position:relative;clear:both}
+
+/* ค่าเล่าเรียน (หน้าคณะ/หลักสูตร) */
+.fqtu{margin:14px 0 0;padding:12px 16px;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:10px;background:var(--surface);max-width:100%}
+.fqtu p{margin:0}
+.fqtv{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;overflow-wrap:anywhere}
+.fqtl{color:var(--muted);font-size:.9em}
+.fqtv b{font-size:1.45em;font-weight:700;color:var(--fg);letter-spacing:.01em}
+.fqtn{color:var(--gold-text);font-weight:600}
+.fqtu .evm{margin-top:6px}
+.fqtu0{border-left-color:var(--silver)}
+.fqtu0 .fqtv{color:var(--muted);font-size:.95em}
+.fqpu{grid-column:1/-1;color:var(--fg);font-size:.92em;font-weight:600}
+@media(max-width:560px){.fqtv b{font-size:1.25em}}
