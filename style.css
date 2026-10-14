@@ -325,7 +325,7 @@ footer{position:relative;clear:both}
 .fqtu{margin:14px 0 0;padding:12px 16px;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:10px;background:var(--surface);max-width:100%}
 .fqtu p{margin:0}
 .fqtv{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;overflow-wrap:anywhere}
-.fqtl{color:var(--muted);font-size:.9em}
+.fqtul{color:var(--muted);font-size:.9em}
 .fqtv b{font-size:1.45em;font-weight:700;color:var(--fg);letter-spacing:.01em}
 .fqtn{color:var(--gold-text);font-weight:600}
 .fqtu .evm{margin-top:6px}
@@ -333,3 +333,31 @@ footer{position:relative;clear:both}
 .fqtu0 .fqtv{color:var(--muted);font-size:.95em}
 .fqpu{grid-column:1/-1;color:var(--fg);font-size:.92em;font-weight:600}
 @media(max-width:560px){.fqtv b{font-size:1.25em}}
+
+/* แผนการศึกษา (หน้าเว็บ): ตารางรายวิชา */
+.plv .pvtw{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px}
+.plv table.pvt{width:100%;border-collapse:collapse;font-size:.95em;line-height:1.5}
+.pvt th{text-align:left;font-size:.8rem;color:var(--muted);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:bottom}
+.pvt td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
+.pvt tbody tr:first-child td{border-top:0}
+.pvt .pvcd{font-weight:600;white-space:nowrap}
+.pvt .pvn{text-align:right;white-space:nowrap}
+.pvt .tag{display:inline-block;margin:0;white-space:nowrap}
+.pvt .tag.pvk-required{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.pvt .tag.pvk-free{border-color:var(--silver);color:var(--muted)}
+.pvpc{display:inline-block;border:1px solid var(--line);border-radius:6px;padding:0 6px;margin:0 4px 2px 0;font-weight:600;white-space:nowrap}
+.pvt .pvd{margin-top:6px}
+.pvt .pvd>summary{cursor:pointer;color:var(--gold-text);font-size:.85rem}
+.pvt .pvds{padding:6px 0 0;color:var(--muted)}
+.pvt .pvds p{margin:0 0 6px}
+@media(max-width:640px){.plv table.pvt,.pvt tbody,.pvt tr,.pvt td{display:block}.pvt thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.pvt tr{padding:10px 12px;border-top:1px solid var(--line)}.pvt tbody tr:first-child{border-top:0}.pvt td{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:8px;border:0;padding:3px 0}.pvt td::before{content:attr(data-l);color:var(--muted);font-size:.8rem}.pvt .pvn{text-align:left}}
+/* แผนการศึกษา (หลังบ้าน): วิชาบังคับก่อน */
+.fqpre{margin:6px 0}
+.fqchs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.fqch{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:99px;padding:2px 4px 2px 10px;font-size:.85rem;background:var(--surface);max-width:100%;overflow-wrap:anywhere}
+.fqch button{border:0;background:none;cursor:pointer;font-size:1rem;line-height:1;padding:2px 8px;color:inherit}
+.fqprs{display:flex;gap:8px;flex-wrap:wrap}
+.fqprs input{flex:1 1 200px;min-width:0}
+.fqprs select{flex:2 1 260px;min-width:0}
+.pvt td .tag{justify-self:start}
+.pvt td::before{font-weight:400}
