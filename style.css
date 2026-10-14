@@ -275,3 +275,29 @@ a.bk:hover,a.bk:focus-visible{opacity:.65}
 @media(max-width:900px){.fqrw{grid-template-columns:1fr 1fr}.fqrw input[data-f=name]{grid-column:1/-1;order:-1}.fqrw .fqac{grid-column:1/-1}.fqhd{display:none}}
 .sec a.fcd,.sec a.fqpr{color:var(--fg);text-decoration:none}
 .sec a.fcd .fcgo,.sec a.fqpr .fqpm{color:var(--gold-text)}
+
+/* แผนการศึกษา (สาธารณะ): เลือกชั้นปี/ภาคเรียน + ค้นหา */
+.pv{margin:6px 0 12px}
+.pvbar{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
+.pvtb{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.pvb{flex:0 0 auto;font:inherit;font-size:.9rem;padding:6px 14px;border:1px solid var(--line);border-radius:99px;background:var(--surface);color:var(--fg);cursor:pointer;white-space:nowrap}
+.pvb:hover{background:var(--hover)}
+.pvb.on{background:var(--act);border-color:var(--act);color:#fff}
+.pvb:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.pvsr{display:flex;gap:6px;align-items:center}
+.pvsr input{flex:1 1 auto;min-width:0}
+.pvck{display:flex;align-items:center;gap:8px;margin:0;font-weight:400;font-size:.88rem;color:var(--muted)}
+.pvck input{width:auto}
+.pvh{margin:8px 0 2px}
+#pvls h4{margin:14px 0 6px}
+.fqcs li>.pvd.pvn,.fqcs li>.pvd>summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;width:100%}
+.fqcs li:has(>details.pvd){padding:0}
+.fqcs li>details.pvd>summary{padding:10px 14px;cursor:pointer;list-style:none}
+.fqcs li>details.pvd>summary::-webkit-details-marker{display:none}
+.fqcs li>details.pvd>summary::after{content:"+";margin-left:auto;color:var(--gold-text);font-weight:600}
+.fqcs li>details.pvd[open]>summary::after{content:"\2212"}
+.fqcs li>details.pvd>summary:hover{background:var(--hover)}
+.fqcs .cn small{display:block;color:var(--muted);font-size:.85em}
+.pvds{padding:2px 14px 12px;color:var(--muted);overflow-wrap:anywhere}
+.pve{padding:16px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);text-align:center}
+@media(min-width:760px){.pvbar{display:grid;grid-template-columns:1fr minmax(260px,340px);gap:10px 16px;align-items:center}.pvbar #pvys{grid-column:1;grid-row:1}.pvbar #pvts{grid-column:1;grid-row:2}.pvsr{grid-column:2;grid-row:1}.pvck{grid-column:2;grid-row:2}}
