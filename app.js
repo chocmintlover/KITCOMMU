@@ -589,7 +589,7 @@ const FQE={
   ['','แผนการศึกษาและรายวิชา','hdr'],['plan','','plan'],
   ['','ข้อมูลเพิ่มเติม','hdr'],['internship','การฝึกงานหรือสหกิจศึกษา (ถ้ามี)','area'],['graduation','เงื่อนไขการสำเร็จการศึกษา (ถ้ามี)','area'],['careerList','แนวทางประกอบอาชีพ (เพิ่มทีละข้อ)','list'],['notes','หมายเหตุเพิ่มเติม (ถ้ามี)','area'],['blocks','','blocks']],
   filter:p=>{const m=fqM().find(x=>x.id===p.majorId);return (!AFV.faculty||(m&&m.facultyId===AFV.faculty))&&(!AFV.major||p.majorId===AFV.major)},
-  label:p=>p.nameTh,sub:p=>{const m=fqM().find(x=>x.id===p.majorId);return (m?m.nameTh+' › '+(fqName(fqF(),m.facultyId)||'-'):'ไม่มีสาขาต้นสังกัด')+' · '+fqLv(p.level)+' · '+(p.open==='open'?'เปิดรับสมัคร':'ปิดรับสมัคร')},kids:()=>[],kidName:'',
+  label:p=>p.nameTh,sub:p=>{const m=fqM().find(x=>x.id===p.majorId);return (m?m.nameTh+' › '+(fqName(fqF(),m.facultyId)||'-'):'ไม่มีสาขาต้นสังกัด')+' · '+fqLv(p.level)+' · '+(p.open==='open'?'เปิดรับสมัคร':'ปิดรับสมัคร')+' · '+(fqTui(p)!=null?fqTuiTxt(fqTui(p)):'ยังไม่ระบุค่าเล่าเรียน')},kids:()=>[],kidName:'',
   parent:()=>fqM(),pk:'majorId',pn:'สาขาวิชา',pl:'#/admin/majors'}
 };
 function secPageInfo(type){const P=getPages(),M=getMenu(),pg=P.find(p=>(p.sections||[]).some(s=>s.type===type)),mi=pg&&M.find(m=>m.kind==='cms'&&m.pageId===pg.id);return {pg,mi}}
