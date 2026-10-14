@@ -110,3 +110,50 @@ footer .fl{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 0}footer .fl a
 .sndr{flex:1;min-width:0;margin:0;padding:0;height:20px;accent-color:var(--gold,#897145);background:transparent;border:0;cursor:pointer}
 .sndv{min-width:3.2em;text-align:right;font-size:.85rem;font-variant-numeric:tabular-nums}
 @media(max-width:520px){.sndp{width:180px;right:-52px}.ab .sndp{right:0}}
+/* ลิงก์ย้อนกลับ: ไม่มีเส้นใต้ ทั้งปกติและ hover */
+a.bk,a.bk:hover,a.bk:focus-visible{text-decoration:none}
+a.bk{transition:opacity .2s}
+a.bk:hover,a.bk:focus-visible{opacity:.65}
+/* แผนผังสถาบัน */
+.cm{margin:12px 0}
+.cmt{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0}
+.cmt input[type=search]{flex:1 1 240px;max-width:380px;margin:0}
+.cmcs{display:flex;flex-wrap:wrap;gap:6px}
+.cmc{border:1.5px solid var(--line);background:var(--card);color:var(--fg);border-radius:99px;padding:5px 14px;font:600 .88rem Anuphan,system-ui,sans-serif;cursor:pointer;transition:.2s}
+.cmc:hover{border-color:var(--gold)}
+.cmc.on{background:var(--act);color:#fff;border-color:var(--act)}
+.cmw{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.cmv{position:relative;overflow:hidden;height:min(68vh,640px);border:1px solid var(--line);border-radius:16px;background:var(--surface,var(--card));touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.cmv.dr{cursor:grabbing}
+.cmv:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.cms{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.cms.an{transition:transform .38s ease}
+.cms img{display:block;max-width:none;width:100%;height:100%;pointer-events:none}
+.cmp{position:absolute;width:0;height:0;padding:0;border:0;background:none;cursor:pointer;overflow:visible;z-index:1}
+.cmp svg{position:absolute;left:0;top:0;transform:translate(-50%,-100%) scale(var(--inv,1));transform-origin:50% 100%;fill:var(--gold);filter:drop-shadow(0 2px 3px #0005);transition:fill .2s}
+.cmp:hover svg{fill:var(--act)}
+.cmp.on{z-index:2}.cmp.on svg{fill:var(--red)}
+.cmp:focus-visible svg{outline:none;fill:var(--red)}
+.cmp[hidden],.cml li[hidden]{display:none}
+.cmz{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:6px;z-index:5}
+.cmz button{width:40px;height:40px;border-radius:50%;border:1px solid var(--nav-line);background:var(--nav-bg);color:var(--nav-fg);font:700 1.2rem/1 Anuphan,system-ui,sans-serif;cursor:pointer;box-shadow:var(--shadow);transition:.2s}
+.cmz button:hover{background:var(--gold);color:#fff}
+.cmd{margin-top:12px}
+.cmdc{position:relative;border:1px solid var(--line);border-radius:16px;background:var(--card);padding:14px 16px}
+.cmdc h2{margin:6px 40px 6px 0}
+.cmdi{display:block;max-width:100%;max-height:220px;border-radius:12px;margin-bottom:8px}
+.cmdl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:8px 0}
+.cmdl dt{opacity:.7}.cmdl dd{margin:0}
+.cmx{position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer;display:grid;place-items:center;padding:0}
+.cml ul{list-style:none;margin:0;padding:0;max-height:min(68vh,640px);overflow:auto;display:flex;flex-direction:column;gap:6px}
+.cmi{width:100%;text-align:left;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg);padding:9px 12px;font:inherit;cursor:pointer;transition:.2s}
+.cmi:hover{border-color:var(--gold)}
+.cmi.on{border-color:var(--act);box-shadow:0 0 0 2px var(--act) inset}
+.cmi small{flex-basis:100%;opacity:.7}
+.cmpk{position:relative;display:inline-block;max-width:100%;border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:crosshair;touch-action:pan-y pinch-zoom;line-height:0}
+.cmpk img{display:block;max-width:100%;height:auto;user-select:none;-webkit-user-drag:none}
+.cmpkp{position:absolute;width:0;height:0;pointer-events:none}
+.cmpkp[hidden]{display:none}
+.cmpkp svg{position:absolute;left:0;top:0;transform:translate(-50%,-100%);fill:var(--red)}
+@media(max-width:900px){.cmw{grid-template-columns:1fr}.cmv{height:min(60vh,480px)}.cml ul{max-height:none}.cmt input[type=search]{max-width:none}}
+@media(prefers-reduced-motion:reduce){.cms.an{transition:none}}
