@@ -276,28 +276,47 @@ a.bk:hover,a.bk:focus-visible{opacity:.65}
 .sec a.fcd,.sec a.fqpr{color:var(--fg);text-decoration:none}
 .sec a.fcd .fcgo,.sec a.fqpr .fqpm{color:var(--gold-text)}
 
-/* แผนการศึกษา (สาธารณะ): เลือกชั้นปี/ภาคเรียน + ค้นหา */
-.pv{margin:6px 0 12px}
-.pvbar{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
-.pvtb{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
-.pvb{flex:0 0 auto;font:inherit;font-size:.9rem;padding:6px 14px;border:1px solid var(--line);border-radius:99px;background:var(--surface);color:var(--fg);cursor:pointer;white-space:nowrap}
+/* แผนการศึกษา (สาธารณะ): เลือกชั้นปี/ภาคเรียน + ค้นหา — selector ขึ้นต้นด้วย .plv เพื่อชนะ .ty ul/.ty li/.ty p */
+.plv{margin:6px 0 12px;min-width:0;max-width:100%}
+.pvbar{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.pvbar>*{min-width:0}
+.pvtb{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.pvb{flex:0 0 auto;font:inherit;font-size:.9rem;line-height:1.3;padding:6px 14px;border:1px solid var(--line);border-radius:99px;background:var(--surface);color:var(--fg);cursor:pointer;white-space:nowrap}
 .pvb:hover{background:var(--hover)}
 .pvb.on{background:var(--act);border-color:var(--act);color:#fff}
 .pvb:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .pvsr{display:flex;gap:6px;align-items:center}
 .pvsr input{flex:1 1 auto;min-width:0}
-.pvck{display:flex;align-items:center;gap:8px;margin:0;font-weight:400;font-size:.88rem;color:var(--muted)}
-.pvck input{width:auto}
-.pvh{margin:8px 0 2px}
-#pvls h4{margin:14px 0 6px}
-.fqcs li>.pvd.pvn,.fqcs li>.pvd>summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;width:100%}
-.fqcs li:has(>details.pvd){padding:0}
-.fqcs li>details.pvd>summary{padding:10px 14px;cursor:pointer;list-style:none}
-.fqcs li>details.pvd>summary::-webkit-details-marker{display:none}
-.fqcs li>details.pvd>summary::after{content:"+";margin-left:auto;color:var(--gold-text);font-weight:600}
-.fqcs li>details.pvd[open]>summary::after{content:"\2212"}
-.fqcs li>details.pvd>summary:hover{background:var(--hover)}
-.fqcs .cn small{display:block;color:var(--muted);font-size:.85em}
-.pvds{padding:2px 14px 12px;color:var(--muted);overflow-wrap:anywhere}
-.pve{padding:16px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);text-align:center}
-@media(min-width:760px){.pvbar{display:grid;grid-template-columns:1fr minmax(260px,340px);gap:10px 16px;align-items:center}.pvbar #pvys{grid-column:1;grid-row:1}.pvbar #pvts{grid-column:1;grid-row:2}.pvsr{grid-column:2;grid-row:1}.pvck{grid-column:2;grid-row:2}}
+.pvck{display:flex;align-items:center;gap:8px;margin:0;font-weight:400;font-size:.88rem;line-height:1.4;color:var(--muted)}
+.pvck input{width:auto;flex:none}
+.plv h3.pvh{margin:8px 0 2px;line-height:1.35}
+.plv h4{margin:18px 0 8px;line-height:1.35}
+.plv p.evm{margin:2px 0 10px;line-height:1.5;flex-wrap:wrap}
+.plv p.pl{margin:0 0 10px}
+.plv ul.pvl{list-style:none;margin:0 0 12px;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.plv ul.pvl>li{margin:0;padding:0;border-top:1px solid var(--line)}
+.plv ul.pvl>li:first-child{border-top:0}
+.pvrw{display:grid;grid-template-columns:7em minmax(0,1fr) 9em 6.5em 6.5em;gap:4px 12px;align-items:center;padding:12px 14px;line-height:1.45;min-width:0}
+details.pvd>summary.pvrw{cursor:pointer;list-style:none}
+details.pvd>summary.pvrw::-webkit-details-marker{display:none}
+details.pvd>summary.pvrw:hover{background:var(--hover)}
+details.pvd>summary.pvrw:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.pvcd{font-weight:600;color:var(--gold-text);overflow-wrap:anywhere;min-width:0}
+.pvnm{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.pvth{display:block}
+.pven{display:block;color:var(--muted);font-size:.85em;line-height:1.4}
+.pvcr{color:var(--muted);font-size:.9em;overflow-wrap:anywhere}
+.pvty{min-width:0}
+.pvty .tag{display:inline-block;margin:0;white-space:nowrap}
+.pvbt{justify-self:end;font-size:.85rem;font-weight:600;color:var(--gold-text);border:1px solid var(--gold);border-radius:99px;padding:2px 12px;white-space:nowrap}
+.pvbt::before{content:"รายละเอียด"}
+details.pvd[open] .pvbt::before{content:"ซ่อน"}
+.pvbt0{display:block}
+.pvds{padding:2px 14px 14px;color:var(--muted);line-height:1.6;overflow-wrap:anywhere}
+.plv .pve{margin:8px 0;padding:16px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);text-align:center;line-height:1.6}
+.plv .pve .btn{margin-left:6px}
+@media(min-width:760px){.pvbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,340px);gap:10px 16px;align-items:center}.pvbar #pvys{grid-column:1;grid-row:1}.pvbar #pvts{grid-column:1;grid-row:2}.pvsr{grid-column:2;grid-row:1}.pvck{grid-column:2;grid-row:2}}
+@media(max-width:640px){.pvrw{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"cd ty bt" "nm nm nm" "cr cr cr";padding:12px}.pvcd{grid-area:cd}.pvty{grid-area:ty}.pvnm{grid-area:nm}.pvcr{grid-area:cr}.pvbt,.pvbt0{grid-area:bt}}
+/* ให้ footer และคอนเทนเนอร์เนื้อหาอยู่ใน flow ปกติเสมอ ไม่ลอยทับรายการ */
+#app{display:flow-root}
+footer{position:relative;clear:both}
