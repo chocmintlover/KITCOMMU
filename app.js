@@ -52,14 +52,14 @@ const pgById=id=>getPages().find(p=>p.id===id);
 const hrefOf=m=>{if(m.kind!=='cms')return m.href;const p=pgById(m.pageId);return p&&p.slug?'#/p/'+p.slug:''};
 const say=(t,ok=true)=>{toast={t,ok};render()};
 const KINDS=[['cms','หน้าที่สร้างจากหลังบ้าน'],['url','ลิงก์ภายนอก'],['heading','หัวข้อ (เปิดเมนูย่อย)']];
-const STY=[['heading','หัวข้อ'],['text','ข้อความ'],['image','รูปภาพ'],['cards','การ์ด'],['button','ปุ่ม'],['linkcards','การ์ดลิงก์ปุ่ม'],['calendar','ปฏิทินกิจกรรม'],['campusmap','แผนผังสถาบัน']];
+const STY=[['heading','หัวข้อ'],['text','ข้อความ'],['image','รูปภาพ'],['cards','การ์ด'],['button','ปุ่ม'],['linkcards','การ์ดลิงก์ปุ่ม'],['calendar','ปฏิทินกิจกรรม'],['campusmap','แผนผังสถาบัน'],['faculties','รวมคณะและวิทยาลัย']];
 const ICONS=[['','ไม่มีไอคอน'],['grad','นักศึกษา'],['award','ทุน/รางวัล'],['users','อาจารย์/กลุ่ม'],['user','บุคคล'],['search','ตรวจสอบ'],['edit','แก้ไข'],['check','ยืนยัน']];
 const stTag=p=>`<span class="tag">${p.status==='published'?'เผยแพร่':'ฉบับร่าง'}</span>`;
 const mkId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,4);
 async function putDoc(k,val){if(!SB||!DBH)throw {code:'42501',message:dbOff()};const {error}=await SB.from('site_docs').upsert({key:k,data:val,updated_at:new Date().toISOString()});if(error)throw error;SHR[k]=val}
 /* ===== โหลดข้อมูล: ผู้เข้าชม = get_public_site() (เฉพาะที่เผยแพร่) / ทีมงาน = ตาราง site_docs ทั้งหมด + Realtime ===== */
 const liveRender=()=>{if(!(location.hash.startsWith('#/admin')&&document.activeElement&&document.activeElement.matches('input,textarea,select')))render()};
-async function loadPublic(){const {data,error}=await SB.rpc('get_public_site');if(error)throw error;['menu','pages','events','settings','campus'].forEach(k=>{if(data&&data[k]!=null)SHR[k]=data[k]})}
+async function loadPublic(){const {data,error}=await SB.rpc('get_public_site');if(error)throw error;['menu','pages','events','settings','campus','fgroups','faculties','majors','programs'].forEach(k=>{if(data&&data[k]!=null)SHR[k]=data[k]})}
 async function loadAll(){const {data,error}=await SB.from('site_docs').select('key,data');if(error)throw error;(data||[]).forEach(r=>{SHR[r.key]=r.data})}
 async function bootStaff(){const {data:{session}}=await SB.auth.getSession();Auth.session=session||null;Auth.staff=false;Auth.email=session&&session.user?session.user.email||'':'';DBH=null;CW=null;
  if(!session)return;const {data,error}=await SB.rpc('is_staff');if(error)throw error;Auth.staff=data===true;
@@ -138,7 +138,7 @@ async function evsave(id){evsync(id);const e=WC.ev.find(x=>x.id===id);e.updated=
  if(e.img&&!okU(e.img))return say('URL ภาพต้องขึ้นต้นด้วย https://',false);if(!DBH)return say(dbOff(),false);
  try{await putDoc('events',WC.ev);WC={};say(e.status==='published'?'บันทึกและตั้งสถานะเผยแพร่แล้ว (ผู้เข้าชมทั่วไปเห็นทันที)':'บันทึกเป็นฉบับร่างแล้ว')}catch(er){dbErr('บันทึกไม่สำเร็จ',er)}}
 /* ===== Public rendering ===== */
-const secsHtml=a=>(a||[]).map(s=>{const t=E(s.text),tg=u=>u[0]==='#'?'':' target="_blank" rel="noopener noreferrer"';if(s.type==='heading')return `<h2>${t}</h2>`;if(s.type==='text')return `<p class="pl">${t}</p>`;if(s.type==='image')return okU(s.url)?`<img src="${E(s.url)}" alt="${E(s.alt)}" style="max-width:100%;height:auto;border-radius:16px;margin:12px 0">`:'';if(s.type==='button')return okL(s.url)?`<p><a class="btn b" href="${E(s.url)}"${tg(s.url)}>${E(s.label)}</a></p>`:'';if(s.type==='cards')return `<div class="grid">${(s.items||[]).map(c=>{const b=`${okU(c.m)?`<img src="${E(c.m)}" alt="">`:''}<div class="p"><h3>${E(c.t)}</h3><p class="pl">${E(c.d)}</p></div>`;return okL(c.l)?`<a class="card" href="${E(c.l)}"${tg(c.l)}>${b}</a>`:`<div class="card h">${b}</div>`}).join('')}</div>`;if(s.type==='calendar')return calView();if(s.type==='campusmap')return cmView();if(s.type==='linkcards')return lcHtml(s);return ''}).join('');
+const secsHtml=a=>(a||[]).map(s=>{const t=E(s.text),tg=u=>u[0]==='#'?'':' target="_blank" rel="noopener noreferrer"';if(s.type==='heading')return `<h2>${t}</h2>`;if(s.type==='text')return `<p class="pl">${t}</p>`;if(s.type==='image')return okU(s.url)?`<img src="${E(s.url)}" alt="${E(s.alt)}" style="max-width:100%;height:auto;border-radius:16px;margin:12px 0">`:'';if(s.type==='button')return okL(s.url)?`<p><a class="btn b" href="${E(s.url)}"${tg(s.url)}>${E(s.label)}</a></p>`:'';if(s.type==='cards')return `<div class="grid">${(s.items||[]).map(c=>{const b=`${okU(c.m)?`<img src="${E(c.m)}" alt="">`:''}<div class="p"><h3>${E(c.t)}</h3><p class="pl">${E(c.d)}</p></div>`;return okL(c.l)?`<a class="card" href="${E(c.l)}"${tg(c.l)}>${b}</a>`:`<div class="card h">${b}</div>`}).join('')}</div>`;if(s.type==='calendar')return calView();if(s.type==='campusmap')return cmView();if(s.type==='faculties')return facView();if(s.type==='linkcards')return lcHtml(s);return ''}).join('');
 const pageView=(p,pv)=>{PVW=!!pv;return `<div class="w sec">${pv?`<div class="msg">ตัวอย่าง: หน้านี้สถานะ${p.status==='published'?'เผยแพร่':'ฉบับร่าง'} · <a href="#/admin/pages/edit/${p.id}">กลับไปแก้ไข</a></div>`:''}<h1>${E(p.title)}</h1>${p.sections&&p.sections.length?secsHtml(p.sections):'<p style="opacity:.6">ยังไม่ได้เพิ่มเนื้อหา</p>'}</div>`};
 const emptyPub=()=>'<div class="empty-pub"><h1>ยังไม่มีหน้าเว็บที่เผยแพร่</h1><p>เว็บไซต์นี้ยังไม่มีเนื้อหา กรุณากลับมาใหม่ภายหลัง</p></div>';
 /* ===== หน้าแรก: เนื้อหาเก็บใน settings.home (ฐานข้อมูลเดิม site/settings) ===== */
@@ -155,11 +155,11 @@ for(const [l,u] of [[h.b1t,h.b1u],[h.b2t,h.b2u]])if((l&&!okL(u))||(!l&&u))return
 if(!DBH)return say(dbOff(),false);try{await putDoc('settings',Object.assign({},getSH('settings')||{},{home:h,footer:STRIP(d.get('f')||'').trim()}));WC.hm=null;say('บันทึกเนื้อหาหน้าแรกเรียบร้อย ผู้เข้าชมเห็นทันที')}catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
 const PUB={p(sl){const q=getPages().find(x=>x.slug===sl);return q&&q.status==='published'?pageView(q):nf()},preview(id){const q=pgById(id);return q?pageView(q,1):nf()}};
 /* ===== Admin: shell ===== */
-const AG=[['ภาพรวม',[['dash','แดชบอร์ด']]],['จัดการเว็บไซต์',[['home','เนื้อหาหน้าแรก'],['pages','จัดการเมนูและหน้าเว็บ'],['menu','แก้ไขเมนูแบบละเอียด'],['events','จัดการกิจกรรมปฏิทิน'],['campus','จัดการแผนผังสถาบัน']]],['ตั้งค่า',[['settings','การตั้งค่าเว็บไซต์']]]];
-function adminNav(sec){return `<aside aria-label="เมนูหลังบ้าน"><b class="ab">${kitTile(30)}<span>Admin · ${BRAND.short}</span>${soundBtn()}${themeBtn()}</b><br><a href="#/">&#8592; ดูเว็บไซต์</a><small style="display:block;opacity:.7;margin:6px 0;word-break:break-all">${E(Auth.email)}</small><button type="button" class="btn s" onclick="doLogout()">ออกจากระบบ</button>${AG.map(([g,it])=>`<div class="ag">${g}</div>${it.map(([k,t])=>{const on=sec===k;return `<a href="#/admin/${k}" class="${on?'on':''}"${on?' aria-current="page"':''}>${t}</a>`}).join('')}`).join('')}</aside>`}
+const AG=[['ภาพรวม',[['dash','แดชบอร์ด']]],['จัดการเว็บไซต์',[['home','เนื้อหาหน้าแรก'],['pages','จัดการเมนูและหน้าเว็บ'],['menu','แก้ไขเมนูแบบละเอียด'],['events','จัดการกิจกรรมปฏิทิน'],['campus','จัดการแผนผังสถาบัน']]],['คณะและหลักสูตร',[['fgroups','จัดการกลุ่มคณะ'],['faculties','จัดการคณะและวิทยาลัย'],['majors','จัดการสาขาวิชา'],['programs','จัดการหลักสูตร']],true],['ตั้งค่า',[['settings','การตั้งค่าเว็บไซต์']]]];
+function adminNav(sec){return `<aside aria-label="เมนูหลังบ้าน"><b class="ab">${kitTile(30)}<span>Admin · ${BRAND.short}</span>${soundBtn()}${themeBtn()}</b><br><a href="#/">&#8592; ดูเว็บไซต์</a><small style="display:block;opacity:.7;margin:6px 0;word-break:break-all">${E(Auth.email)}</small><button type="button" class="btn s" onclick="doLogout()">ออกจากระบบ</button>${AG.map(([g,it,fold])=>{const ln=it.map(([k,t])=>{const on=sec===k;return `<a href="#/admin/${k}" class="${on?'on':''}"${on?' aria-current="page"':''}>${t}</a>`}).join('');return fold?`<details class="agd"${FQN.open||it.some(x=>x[0]===sec)?' open':''} ontoggle="FQN.open=this.open"><summary class="ag">${g}</summary>${ln}</details>`:`<div class="ag">${g}</div>${ln}`}).join('')}</aside>`}
 function sbt(){sbc=!sbc;render()}
 function admin(parts){if(!Auth.canAccessAdmin())return loginView();const sec=parts[0]||'dash';if(sec!=='home')WC.hm=null;let main;
- if(sec==='dash')main=dashboard();else if(sec==='pages'&&parts[1]==='edit')main=pageEditor(parts[2]);else if(sec==='pages')main=pagesAdmin();else if(sec==='home')main=homeAdmin();else if(sec==='menu')main=menuAdmin();else if(sec==='events'&&parts[1]==='edit')main=eventEditor(parts[2]);else if(sec==='events')main=eventsAdmin();else if(sec==='campus'&&parts[1]==='edit')main=cmpEditor(parts[2]);else if(sec==='campus')main=campusAdmin();else if(sec==='settings')main=settingsAdmin();else main='<p>ไม่พบเมนู</p>';
+ if(sec==='dash')main=dashboard();else if(sec==='pages'&&parts[1]==='edit')main=pageEditor(parts[2]);else if(sec==='pages')main=pagesAdmin();else if(sec==='home')main=homeAdmin();else if(sec==='menu')main=menuAdmin();else if(sec==='events'&&parts[1]==='edit')main=eventEditor(parts[2]);else if(sec==='events')main=eventsAdmin();else if(sec==='campus'&&parts[1]==='edit')main=cmpEditor(parts[2]);else if(sec==='campus')main=campusAdmin();else if(FQE[sec])main=parts[1]==='edit'?fqEditor(sec,parts[2]):fqAdmin(sec);else if(sec==='settings')main=settingsAdmin();else main='<p>ไม่พบเมนู</p>';
  return `<div class="adm${sbc?' c':''}">${adminNav(sec)}<main><button class="btn s" onclick="sbt()" aria-expanded="${!sbc}" aria-label="ย่อหรือขยายเมนู">${ic('menu')} เมนู</button>${toast?`<div class="msg ${toast.ok?'ok':'er'}">${E(toast.t)}</div>`:''}${main}</main></div>`}
 const dbBanner=()=>`<div class="msg ${DBH&&CW!==false?'ok':'er'}">${DBH?(CW===false?'เชื่อมต่อฐานข้อมูลแล้ว แต่บัญชีนี้ไม่มีสิทธิ์เขียนข้อมูล (ดูได้อย่างเดียว) ต้องเป็นเจ้าของหรือผู้แก้ไข':'เชื่อมต่อ Supabase แล้ว บันทึกลงฐานข้อมูลจริง (เฉพาะทีมงานที่ได้รับอนุญาต)'):dbOff()}</div>`;
 /* ===== Admin: dashboard ===== */
@@ -191,7 +191,7 @@ function pageEditor(id){if(!WC.pg)WC.pg=clone(getPages());const p=WC.pg.find(x=>
  const o=(a,v)=>a.map(([k,t])=>`<option value="${k}" ${v===k?'selected':''}>${t}</option>`).join('');
  const sec=(s,i)=>{const n=s.id+'_',f=(l,k,v,ta)=>`<label>${l}</label>${ta?`<textarea name="${n}${k}">${E(v)}</textarea>`:`<input name="${n}${k}" value="${E(v)}" placeholder="${/(^|_)(u|m|l)$/.test(k)?'ตัวอย่าง: https://example.com':''}">`}`;let b='';
   if(s.type==='heading')b=f('ข้อความหัวข้อ','tx',s.text);else if(s.type==='text')b=f('ข้อความ','tx',s.text,1);else if(s.type==='image')b=f('URL รูปภาพ (https://)','u',s.url)+f('คำอธิบายภาพ','a',s.alt);else if(s.type==='button')b=f('ข้อความบนปุ่ม','lb',s.label)+f('URL ปลายทาง (https:// หรือ #/หน้า)','u',s.url);
-  else if(s.type==='campusmap')b='<p>ส่วนนี้แสดงแผนผังสถาบัน ข้อมูลมาจาก <a href="#/admin/campus">จัดการแผนผังสถาบัน</a></p>';else if(s.type==='calendar')b='<p>ส่วนนี้แสดงปฏิทินและรายการกิจกรรม ข้อมูลมาจากชุดเดียวกับ <a href="#/admin/events">จัดการกิจกรรมปฏิทิน</a></p>';
+  else if(s.type==='faculties')b='<p>ส่วนนี้แสดงรายการคณะและวิทยาลัย ข้อมูลมาจากหมวด <a href="#/admin/faculties">คณะและหลักสูตร</a></p>';else if(s.type==='campusmap')b='<p>ส่วนนี้แสดงแผนผังสถาบัน ข้อมูลมาจาก <a href="#/admin/campus">จัดการแผนผังสถาบัน</a></p>';else if(s.type==='calendar')b='<p>ส่วนนี้แสดงปฏิทินและรายการกิจกรรม ข้อมูลมาจากชุดเดียวกับ <a href="#/admin/events">จัดการกิจกรรมปฏิทิน</a></p>';
   else if(s.type==='linkcards')b=(s.items||[]).map((c,j)=>`<div class="row"><b>การ์ด ${j+1}</b> <button type="button" class="btn s" onclick="imv('${id}','${s.id}',${j},-1)">ขึ้น</button> <button type="button" class="btn s" onclick="imv('${id}','${s.id}',${j},1)">ลง</button> <button type="button" class="btn s c" onclick="idel('${id}','${s.id}',${j})">ลบการ์ด</button>${f('ชื่อการ์ด',j+'_t',c.t)}${f('คำอธิบายสั้น',j+'_d',c.d,1)}${f('ข้อความบนปุ่ม',j+'_b',c.b)}${f('URL ปลายทาง (https:// ถ้าว่างจะแสดง "ยังไม่ได้ตั้งค่าลิงก์")',j+'_u',c.u)}<label>ไอคอน</label><select name="${n}${j}_i">${o(ICONS,c.i||'')}</select></div>`).join('')+`<button type="button" class="btn s" onclick="iadd('${id}','${s.id}')">+ เพิ่มการ์ด</button>`;
   else b=(s.items||[]).map((c,j)=>`<div class="row"><b>การ์ด ${j+1}</b> <button type="button" class="btn s c" onclick="idel('${id}','${s.id}',${j})">ลบการ์ด</button>${f('ชื่อ',j+'_t',c.t)}${f('คำอธิบาย',j+'_d',c.d,1)}${f('URL รูปภาพ',j+'_m',c.m)}${f('ลิงก์',j+'_l',c.l)}</div>`).join('')+`<button type="button" class="btn s" onclick="iadd('${id}','${s.id}')">+ เพิ่มการ์ด</button>`;
   return `<div class="row"><b>ส่วนที่ ${i+1}</b> <button type="button" class="btn s" onclick="pmv('${id}','${s.id}',-1)">ขึ้น</button> <button type="button" class="btn s" onclick="pmv('${id}','${s.id}',1)">ลง</button> <button type="button" class="btn s" onclick="pdup('${id}','${s.id}')">ทำซ้ำ</button> <button type="button" class="btn s c" onclick="psd('${id}','${s.id}')">ลบส่วน</button><label>ประเภท</label><select name="${n}ty" onchange="psync('${id}');render()">${o(STY,s.type)}</select>${b}</div>`};
@@ -346,6 +346,139 @@ function cmpkClick(e){cmpkSet(e)}
 function cmpkDown(e){if(e.pointerType==='mouse'&&e.button===0){CM.pk=true;cmpkSet(e)}}
 function cmpkInput(){const f=document.getElementById('af');if(!f)return;const x=f.elements['cp_x'].value,y=f.elements['cp_y'].value;cmpkDraw(x===''?null:+x,y===''?null:+y)}
 function cmpkClear(){const f=document.getElementById('af');if(f){f.elements['cp_x'].value='';f.elements['cp_y'].value=''}cmpkDraw(null,null)}
+/* ===== คณะ สาขาวิชา หลักสูตร: กลุ่มคณะ → คณะ/วิทยาลัย → สาขาวิชา → หลักสูตร (site_docs keys: fgroups, faculties, majors, programs; เชื่อมกันด้วย id) ===== */
+const FQ_LV=[['bachelor','ปริญญาตรี'],['master','ปริญญาโท'],['doctor','ปริญญาเอก'],['other','อื่น ๆ']];
+const fqLv=k=>(FQ_LV.find(x=>x[0]===k)||FQ_LV[FQ_LV.length-1])[1];
+const fqArr=k=>{const v=getSH(k);return Array.isArray(v)?v.filter(x=>x&&x.id):[]};
+const fqG=()=>fqArr('fgroups'),fqF=()=>fqArr('faculties'),fqM=()=>fqArr('majors'),fqP=()=>fqArr('programs');
+const fqIsPub=x=>x.status==='published';
+/* สิ่งที่ผู้เข้าชมเห็น: ต้องเผยแพร่ทุกระดับตั้งแต่กลุ่มลงมา (ซ่อนต้นสังกัด = ซ่อนรายการลูก) */
+function fqPub(){const G=fqG().filter(fqIsPub),gi=new Set(G.map(x=>x.id)),F=fqF().filter(f=>fqIsPub(f)&&gi.has(f.groupId)),fi=new Set(F.map(x=>x.id)),M=fqM().filter(m=>fqIsPub(m)&&fi.has(m.facultyId)),mi=new Set(M.map(x=>x.id)),P=fqP().filter(p=>fqIsPub(p)&&mi.has(p.majorId));return {G,F,M,P}}
+const FS={key:null,q:'',g:'',lv:''};
+const fqFlower=f=>{const w=f&&f.flower||{};return {img:okU(w.img)?w.img:'',nameTh:w.nameTh||'',nameEn:w.nameEn||'',meaning:w.meaning||''}};
+function fqInfo(f,D){const Ms=D.M.filter(m=>m.facultyId===f.id),mi=new Set(Ms.map(m=>m.id));return {Ms,Ps:D.P.filter(p=>mi.has(p.majorId))}}
+function fqMatchF(f,D){const {Ms,Ps}=fqInfo(f,D);if(FS.g&&f.groupId!==FS.g)return null;if(FS.lv&&!(Ms.some(m=>(m.levels||[]).includes(FS.lv))||Ps.some(p=>p.level===FS.lv)))return null;
+ const q=FS.q;if(!q)return {hits:[]};const hay=x=>[x.nameTh,x.nameEn,x.abbr,x.degree].join(' ').toLowerCase();if(hay(f).includes(q))return {hits:[]};
+ const hits=Ms.filter(m=>hay(m).includes(q)).map(m=>m.nameTh).concat(Ps.filter(p=>hay(p).includes(q)).map(p=>p.nameTh));return hits.length?{hits}:null}
+function fqListHtml(D){let n=0;const body=D.G.map(g=>{const cs=D.F.filter(f=>f.groupId===g.id).map(f=>({f,m:fqMatchF(f,D)})).filter(x=>x.m);if(!cs.length)return '';n+=cs.length;
+ return `<section class="fqg"><h2>${E(g.name)}</h2>${g.desc?`<p class="pl">${E(g.desc)}</p>`:''}<div class="grid">${cs.map(({f,m})=>{const {Ms,Ps}=fqInfo(f,D),im=okU(f.cover)?f.cover:okU(f.logo)?f.logo:'';
+  return `<a class="card" href="#/faculty/${E(f.id)}">${im?`<img src="${E(im)}" alt="" loading="lazy">`:''}<div class="p"><h3>${E(f.nameTh)}</h3>${f.nameEn?`<p class="evm">${E(f.nameEn)}</p>`:''}${f.abbr?`<span class="tag">${E(f.abbr)}</span>`:''}${f.brief?`<p class="pl fqbr">${E(f.brief)}</p>`:''}<p class="evm">${Ms.length} สาขาวิชา · ${Ps.length} หลักสูตร</p>${m.hits.length?`<p class="evm">ตรงกับ: ${m.hits.slice(0,3).map(E).join(', ')}${m.hits.length>3?' …':''}</p>`:''}</div></a>`}).join('')}</div></section>`}).join('');
+ return `<p class="evm" id="fqn" aria-live="polite">${n?'พบ '+n+' คณะ/วิทยาลัย':''}</p>${n?body:'<div class="empty-ev"><b>ไม่พบข้อมูลที่ตรงกับการค้นหา</b><br>ลองเปลี่ยนคำค้นหาหรือตัวกรอง</div>'}`}
+function facView(){if(FS.key!==location.hash){FS.key=location.hash;FS.q='';FS.g='';FS.lv=''}
+ const D=fqPub();if(!D.F.length)return `<div class="fq"><div class="empty-ev"><b>ยังไม่มีข้อมูลคณะและวิทยาลัย</b><br>${Auth.canAccessAdmin()?'<a href="#/admin/faculties">เพิ่มข้อมูลที่หลังบ้าน</a>':'กรุณากลับมาใหม่ภายหลัง'}</div></div>`;
+ const gs=D.G.filter(g=>D.F.some(f=>f.groupId===g.id)),lvs=FQ_LV.filter(l=>D.M.some(m=>(m.levels||[]).includes(l[0]))||D.P.some(p=>p.level===l[0])),chip=(k,v,t)=>`<button type="button" class="cmc fqc${FS[k]===v?' on':''}" data-k="${k}" data-v="${E(v)}" onclick="fqSet('${k}','${E(v)}')">${E(t)}</button>`;
+ return `<div class="fq"><div class="cmt"><input id="fqq" type="search" placeholder="ค้นหาชื่อคณะ สาขาวิชา หรือหลักสูตร" value="${E(FS.q)}" oninput="fqFilter()" aria-label="ค้นหาชื่อคณะ สาขาวิชา หรือหลักสูตร"></div>
+<div class="cmcs" role="group" aria-label="กรองตามกลุ่มคณะ">${chip('g','','ทุกกลุ่มคณะ')}${gs.map(g=>chip('g',g.id,g.name)).join('')}</div>${lvs.length?`<div class="cmcs" role="group" aria-label="กรองตามระดับการศึกษา" style="margin-top:8px">${chip('lv','','ทุกระดับการศึกษา')}${lvs.map(l=>chip('lv',l[0],l[1])).join('')}</div>`:''}<div id="fql">${fqListHtml(D)}</div></div>`}
+function fqRefresh(){const l=$('fql');if(l)l.innerHTML=fqListHtml(fqPub());document.querySelectorAll('.fqc').forEach(b=>b.classList.toggle('on',FS[b.dataset.k]===b.dataset.v))}
+function fqFilter(){const i=$('fqq');FS.q=i?i.value.trim().toLowerCase():'';fqRefresh()}
+function fqSet(k,v){FS[k]=FS[k]===v&&v!==''?'':v;fqRefresh()}
+function facDetail(id){const D=fqPub(),f=D.F.find(x=>x.id===id);
+ if(!f)return shell('<div class="w sec"><h1>ไม่พบคณะหรือวิทยาลัยนี้</h1><p>อาจยังไม่เผยแพร่หรือถูกลบแล้ว</p><p><a class="bk" href="#/">← กลับหน้าแรก</a></p></div>');
+ const lp=getPages().find(p=>p.status==='published'&&(p.sections||[]).some(s=>s.type==='faculties')),back=lp?'#/p/'+lp.slug:'#/',g=D.G.find(x=>x.id===f.groupId),fl=fqFlower(f),hasFl=fl.img||fl.nameTh||fl.nameEn||fl.meaning,{Ms}=fqInfo(f,D),blk=(t,v)=>v?`<h2>${t}</h2><p class="pl">${E(v)}</p>`:'';
+ const prog=p=>`<details class="fqp"><summary><b>${E(p.nameTh)}</b>${p.nameEn?` <small>${E(p.nameEn)}</small>`:''} <span class="tag">${E(fqLv(p.level))}</span><span class="tag">${p.open==='open'?'เปิดรับสมัคร':'ปิดรับสมัคร'}</span></summary><dl class="cmdl">${[['ชื่อปริญญา',p.degree],['ระยะเวลาศึกษา',p.duration]].map(([l,v])=>v?`<dt>${l}</dt><dd>${E(v)}</dd>`:'').join('')}</dl>${blk('รายละเอียดหลักสูตร',p.desc)}${blk('คุณสมบัติผู้สมัคร',p.requirements)}${blk('แนวทางประกอบอาชีพ',p.careers)}</details>`;
+ return shell(`<div class="w sec fqd"><p><a class="bk" href="${E(back)}">← กลับหน้ารวมคณะและวิทยาลัย</a></p>${okU(f.cover)?`<div class="fqb"><img src="${E(f.cover)}" alt=""></div>`:''}<div class="fqh">${okU(f.logo)?`<img class="fql" src="${E(f.logo)}" alt="ตราสัญลักษณ์ ${E(f.nameTh)}">`:''}<div>${g?`<p class="evm">${E(g.name)}</p>`:''}<h1>${E(f.nameTh)}</h1>${f.nameEn?`<p class="evm">${E(f.nameEn)}</p>`:''}${f.abbr?`<span class="tag">${E(f.abbr)}</span>`:''}</div></div>${blk('เกี่ยวกับคณะ',f.about||f.brief)}${blk('ข้อมูลการรับสมัคร',f.admission)}${blk('ช่องทางติดต่อ',f.contact)}
+${hasFl?`<h2>ดอกไม้ประจำคณะ</h2><div class="fqfl">${fl.img?`<img src="${E(fl.img)}" alt="${E(fl.nameTh||'ดอกไม้ประจำคณะ')}">`:''}<div>${fl.nameTh?`<h3>${E(fl.nameTh)}</h3>`:''}${fl.nameEn?`<p class="evm">${E(fl.nameEn)}</p>`:''}${fl.meaning?`<p class="pl">${E(fl.meaning)}</p>`:''}</div></div>`:''}
+<h2>สาขาวิชาและหลักสูตร</h2>${Ms.length?Ms.map(m=>{const ps=D.P.filter(p=>p.majorId===m.id);return `<section class="fqm"><h3>${E(m.nameTh)}</h3>${m.nameEn?`<p class="evm">${E(m.nameEn)}</p>`:''}<p>${(m.levels||[]).map(l=>`<span class="tag">${E(fqLv(l))}</span>`).join('')}</p>${m.desc?`<p class="pl">${E(m.desc)}</p>`:''}${ps.length?ps.map(prog).join(''):'<p class="evm">ยังไม่มีข้อมูลหลักสูตร</p>'}</section>`}).join(''):'<div class="empty-ev">ยังไม่มีข้อมูลสาขาวิชาและหลักสูตร</div>'}</div>`)}
+PUB.faculty=facDetail;
+
+/* ===== Admin: คณะและหลักสูตร (ตัวจัดการกลางใช้ร่วมกันทั้ง 4 ระดับ) ===== */
+const PEND={path:'',files:{}};
+const AFV={group:'',faculty:'',major:''};
+const FQN={open:false};
+const fqName=(arr,id,k)=>{const x=arr.find(y=>y.id===id);return x?x[k||'nameTh']||x.name||'':''};
+const FQE={
+ fgroups:{one:'กลุ่มคณะ',title:'จัดการกลุ่มคณะ',pre:'fg',get:fqG,
+  blank:()=>({name:'',nameEn:'',desc:'',status:'draft'}),
+  fields:[['name','ชื่อกลุ่มคณะ','text',1],['nameEn','ชื่อภาษาอังกฤษ','text'],['desc','คำอธิบายกลุ่ม','area']],
+  label:g=>g.name,sub:g=>fqF().filter(f=>f.groupId===g.id).length+' คณะ/วิทยาลัย',kids:g=>fqF().filter(f=>f.groupId===g.id),kidName:'คณะ/วิทยาลัย'},
+ faculties:{one:'คณะ/วิทยาลัย',title:'จัดการคณะและวิทยาลัย',pre:'fa',get:fqF,
+  blank:()=>({groupId:AFV.group||'',nameTh:'',nameEn:'',abbr:'',brief:'',about:'',cover:'',logo:'',admission:'',contact:'',flower:null,status:'draft'}),
+  fields:[['groupId','กลุ่มคณะ','sel',1,()=>fqG().map(g=>[g.id,g.name])],['nameTh','ชื่อภาษาไทย','text',1],['nameEn','ชื่อภาษาอังกฤษ','text'],['abbr','ชื่อย่อ (ถ้ามี)','text'],['brief','คำอธิบายแบบย่อ (แสดงบนการ์ด)','area'],['about','คำแนะนำและรายละเอียดเกี่ยวกับคณะ','area8'],['cover','ภาพปกหรือแบนเนอร์','img'],['logo','ตราสัญลักษณ์หรือรูปประจำคณะ','img'],['admission','ข้อมูลการรับสมัคร','area'],['contact','ช่องทางติดต่อ','area'],['flower','','flower']],
+  filter:f=>!AFV.group||f.groupId===AFV.group,
+  label:f=>f.nameTh,sub:f=>(fqName(fqG(),f.groupId,'name')||'ไม่มีกลุ่มต้นสังกัด')+' · '+fqM().filter(m=>m.facultyId===f.id).length+' สาขาวิชา',kids:f=>fqM().filter(m=>m.facultyId===f.id),kidName:'สาขาวิชา',
+  parent:()=>fqG(),pk:'groupId',pn:'กลุ่มคณะ',pl:'#/admin/fgroups'},
+ majors:{one:'สาขาวิชา',title:'จัดการสาขาวิชา',pre:'mj',get:fqM,
+  blank:()=>({facultyId:AFV.faculty||'',nameTh:'',nameEn:'',desc:'',levels:[],status:'draft'}),
+  fields:[['facultyId','คณะต้นสังกัด','sel',1,()=>fqF().map(f=>[f.id,f.nameTh])],['nameTh','ชื่อภาษาไทย','text',1],['nameEn','ชื่อภาษาอังกฤษ','text'],['desc','คำอธิบายสาขา','area'],['levels','ระดับการศึกษา','chk']],
+  filter:m=>!AFV.faculty||m.facultyId===AFV.faculty,
+  label:m=>m.nameTh,sub:m=>(fqName(fqF(),m.facultyId)||'ไม่มีคณะต้นสังกัด')+' · '+(m.levels||[]).map(fqLv).join('/')+' · '+fqP().filter(p=>p.majorId===m.id).length+' หลักสูตร',kids:m=>fqP().filter(p=>p.majorId===m.id),kidName:'หลักสูตร',
+  parent:()=>fqF(),pk:'facultyId',pn:'คณะ/วิทยาลัย',pl:'#/admin/faculties'},
+ programs:{one:'หลักสูตร',title:'จัดการหลักสูตร',pre:'pg',get:fqP,
+  blank:()=>({majorId:AFV.major||'',nameTh:'',nameEn:'',degree:'',level:'bachelor',duration:'',desc:'',requirements:'',careers:'',open:'closed',status:'draft'}),
+  fields:[['majorId','สาขาวิชาต้นสังกัด','sel',1,()=>fqM().map(m=>[m.id,m.nameTh,fqName(fqF(),m.facultyId)||'(ไม่มีคณะ)'])],['nameTh','ชื่อหลักสูตรภาษาไทย','text',1],['nameEn','ชื่อหลักสูตรภาษาอังกฤษ','text'],['degree','ชื่อปริญญา (ถ้ามี)','text'],['level','ระดับการศึกษา','sel',1,()=>FQ_LV],['duration','ระยะเวลาศึกษา','text'],['desc','รายละเอียดหลักสูตร','area8'],['requirements','คุณสมบัติผู้สมัคร','area'],['careers','แนวทางประกอบอาชีพ','area'],['open','สถานะเปิดรับสมัคร','sel',0,()=>[['closed','ปิดรับสมัคร'],['open','เปิดรับสมัคร']]]],
+  filter:p=>{const m=fqM().find(x=>x.id===p.majorId);return (!AFV.faculty||(m&&m.facultyId===AFV.faculty))&&(!AFV.major||p.majorId===AFV.major)},
+  label:p=>p.nameTh,sub:p=>{const m=fqM().find(x=>x.id===p.majorId);return (m?m.nameTh+' › '+(fqName(fqF(),m.facultyId)||'-'):'ไม่มีสาขาต้นสังกัด')+' · '+fqLv(p.level)+' · '+(p.open==='open'?'เปิดรับสมัคร':'ปิดรับสมัคร')},kids:()=>[],kidName:'',
+  parent:()=>fqM(),pk:'majorId',pn:'สาขาวิชา',pl:'#/admin/majors'}
+};
+function secPageInfo(type){const P=getPages(),M=getMenu(),pg=P.find(p=>(p.sections||[]).some(s=>s.type===type)),mi=pg&&M.find(m=>m.kind==='cms'&&m.pageId===pg.id);return {pg,mi}}
+function secPageBox(type,title,slugDef,fn){const {pg,mi}=secPageInfo(type);return pg&&mi?`<div class="msg ok">หน้า "${E(pg.title)}" อยู่ในเมนูแล้ว ${stTag(pg)} · <a href="#/p/${E(pg.slug)}">เปิดหน้า</a> · <a href="#/admin/pages/edit/${E(pg.id)}">แก้ไขหน้า</a> · <a href="#/admin/menu">จัดตำแหน่งเมนู</a></div>`:`<div class="msg er">${pg?'มีหน้าแล้วแต่ยังไม่อยู่ในเมนู':'ยังไม่มีหน้า "'+E(title)+'" ในเมนูของเว็บไซต์'}</div><p><button type="button" class="btn b" onclick="${fn}()">${pg?'เพิ่มลงในเมนู':'สร้างหน้าและเมนู "'+E(title)+'"'}</button></p>`}
+async function secPageMake(type,title,slugDef){if(!DBH)return say(dbOff(),false);const P=clone(getPages()),M=clone(getMenu());let pg=P.find(p=>(p.sections||[]).some(s=>s.type===type));
+ if(!pg){const id=mkId('pg');let slug=slugDef;if(P.some(x=>x.slug===slug))slug=id;pg={id,title,slug,status:'published',sections:[{id:mkId('s'),type,text:'',url:'',alt:'',label:'',items:[]}],updated:Date.now()};P.push(pg)}
+ if(!M.some(m=>m.kind==='cms'&&m.pageId===pg.id)){const mx=Math.max(-10,...M.filter(y=>!y.parent).map(y=>+y.order||0));M.push({id:mkId('m'),label:title,m:'',kind:'cms',pageId:pg.id,href:'',tab:'same',show:true,order:mx+10,parent:''})}
+ try{await putDoc('pages',P);await putDoc('menu',M);say('เพิ่มหน้าและเมนู "'+title+'" แล้ว (ย้ายตำแหน่งเมนูได้ที่ แก้ไขเมนูแบบละเอียด)')}catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
+const facMakePage=()=>secPageMake('faculties','คณะและวิทยาลัย','faculties');
+function fqAdmin(ent){const C=FQE[ent],all=C.get(),L=C.filter?all.filter(C.filter):all,D=fqPub(),vis=new Set([].concat(D.G,D.F,D.M,D.P).map(x=>x.id));
+ const sel=(k,l,opts)=>`<label style="display:inline-block;margin-right:12px">${l} <select onchange="fqAf('${k}',this.value)"><option value="">ทั้งหมด</option>${opts.map(([v,t])=>`<option value="${E(v)}"${AFV[k]===v?' selected':''}>${E(t)}</option>`).join('')}</select></label>`;
+ const fl=ent==='faculties'?sel('group','กลุ่มคณะ',fqG().map(g=>[g.id,g.name])):ent==='majors'?sel('faculty','คณะ',fqF().map(f=>[f.id,f.nameTh])):ent==='programs'?sel('faculty','คณะ',fqF().map(f=>[f.id,f.nameTh]))+sel('major','สาขาวิชา',fqM().filter(m=>!AFV.faculty||m.facultyId===AFV.faculty).map(m=>[m.id,m.nameTh])):'';
+ return `<h1>${C.title}</h1><p>เพิ่ม แก้ไข ซ่อน/เผยแพร่ ลบ และจัดเรียงลำดับ ข้อมูลบันทึกใน Supabase ถ้าซ่อนรายการต้นสังกัด รายการลูกจะไม่แสดงบนเว็บไซต์ด้วย</p>${dbBanner()}${ent==='faculties'?secPageBox('faculties','คณะและวิทยาลัย','faculties','facMakePage'):''}
+${C.parent&&!C.parent().length?`<div class="msg er">ต้องมี${C.pn}ก่อนจึงจะเพิ่ม${C.one}ได้ <a href="${C.pl}">ไปจัดการ${C.pn}</a></div>`:''}<p><a class="btn b" href="#/admin/${ent}/edit/new">+ เพิ่ม${C.one}</a></p>${fl?`<p>${fl}</p>`:''}<p><small>ทั้งหมด ${all.length} รายการ${L.length!==all.length?' · แสดง '+L.length+' รายการตามตัวกรอง':''}</small></p>
+${L.length?L.map((it,i)=>`<div class="row"><b>${E(C.label(it))}</b> ${stTag(it)} ${fqIsPub(it)&&!vis.has(it.id)?'<span class="tag">ไม่แสดงบนเว็บไซต์ (ต้นสังกัดถูกซ่อนหรือไม่มี)</span>':''}<br><small>${E(C.sub(it))}</small><br><a class="btn s" href="#/admin/${ent}/edit/${E(it.id)}">แก้ไข</a> <button type="button" class="btn s"${i?'':' disabled'} onclick="fqMv('${ent}','${E(it.id)}',-1)">ขึ้น</button> <button type="button" class="btn s"${i<L.length-1?'':' disabled'} onclick="fqMv('${ent}','${E(it.id)}',1)">ลง</button> <button type="button" class="btn s" onclick="fqTog('${ent}','${E(it.id)}')">${fqIsPub(it)?'ซ่อน':'เผยแพร่'}</button> <button type="button" class="btn s c" onclick="fqDelAsk('${ent}','${E(it.id)}')">ลบ</button></div>`).join(''):'<div class="empty-ev">ยังไม่มีข้อมูล กดเพิ่มเพื่อเริ่มต้น</div>'}`}
+function fqAf(k,v){AFV[k]=v;if(k==='faculty')AFV.major='';render()}
+async function fqMv(ent,id,d){const C=FQE[ent],all=C.get().slice(),vis=C.filter?all.filter(C.filter):all,i=vis.findIndex(x=>x.id===id),j=i+d;if(i<0||j<0||j>=vis.length)return;if(!DBH)return say(dbOff(),false);const a=all.indexOf(vis[i]),b=all.indexOf(vis[j]);[all[a],all[b]]=[all[b],all[a]];try{await putDoc(ent,all);say('เปลี่ยนลำดับแล้ว')}catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
+async function fqTog(ent,id){if(!DBH)return say(dbOff(),false);const all=clone(FQE[ent].get()),it=all.find(x=>x.id===id);if(!it)return;it.status=fqIsPub(it)?'draft':'published';try{await putDoc(ent,all);say(fqIsPub(it)?'เผยแพร่แล้ว':'ซ่อนแล้ว'+(FQE[ent].kids(it).length?' (รายการที่สังกัดจะไม่แสดงบนเว็บไซต์ด้วย)':''))}catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
+function fqDelAsk(ent,id){const C=FQE[ent],it=C.get().find(x=>x.id===id);if(!it)return;const k=C.kids(it);
+ $('md').innerHTML=k.length?`<div class="modal"><div><h3>ลบไม่ได้: ยังมีรายการที่เชื่อมโยง</h3><p>"${E(C.label(it))}" ยังมี ${k.length} ${C.kidName} สังกัดอยู่ ระบบไม่ลบให้เพื่อป้องกันข้อมูลสูญหาย กรุณาลบหรือย้าย${C.kidName}เหล่านั้นก่อน หรือเลือกซ่อนรายการนี้แทน</p><button class="btn b" onclick="$('md').innerHTML='';fqHideOnly('${ent}','${E(id)}')">ซ่อนแทน</button> <button class="btn" onclick="$('md').innerHTML=''">ปิด</button></div></div>`
+ :`<div class="modal"><div><h3>ยืนยันการลบ${C.one}</h3><p>"${E(C.label(it))}" จะถูกลบถาวร</p><button class="btn c" onclick="fqDelDo('${ent}','${E(id)}')">ลบ</button> <button class="btn" onclick="$('md').innerHTML=''">ยกเลิก</button></div></div>`}
+async function fqHideOnly(ent,id){const all=clone(FQE[ent].get()),it=all.find(x=>x.id===id);if(!it||!DBH)return;it.status='draft';try{await putDoc(ent,all);say('ซ่อนแล้ว')}catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
+async function fqDelDo(ent,id){$('md').innerHTML='';const C=FQE[ent],it=C.get().find(x=>x.id===id);if(!it)return;if(C.kids(it).length)return say('ลบไม่ได้ ยังมีรายการสังกัดอยู่',false);if(!DBH)return say(dbOff(),false);try{await putDoc(ent,C.get().filter(x=>x.id!==id));say('ลบเรียบร้อย')}catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
+/* --- ตัวแก้ไข --- */
+function fqPend(){if(PEND.path!==location.hash){PEND.path=location.hash;PEND.files={}}return PEND}
+const fqImgGet=(it,k)=>k==='flower'?(it.flower&&it.flower.img)||'':it[k]||'';
+function fqImgSet(it,k,v){if(k==='flower'){it.flower=it.flower||{};it.flower.img=v}else it[k]=v}
+function fqImg(k,l,it,nm){const p=fqPend().files[k],v=fqImgGet(it,k),src=p?p.url:okU(v)?v:'';
+ return `<label>${l}</label>${src?`<img class="fqpv" src="${E(src)}" alt="ตัวอย่างภาพ">${p?'<p><small>ภาพตัวอย่าง — ยังไม่ได้บันทึก จะอัปโหลดเมื่อกดบันทึก</small></p>':''}`:'<p><small>ยังไม่มีรูป</small></p>'}<input name="${nm}" value="${E(v)}" placeholder="ลิงก์รูป https:// (หรืออัปโหลด/เลือกจากคลังสื่อด้านล่าง)"><input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onchange="fqPick('${k}',this)"><p><button type="button" class="btn s" onclick="fqLib('${k}')">เลือกจากคลังสื่อ</button> ${src?`<button type="button" class="btn s c" onclick="fqImgClear('${k}')">ลบรูป</button>`:''}</p>`}
+function fqEditor(ent,id){const C=FQE[ent],isNew=id==='new';
+ if(!WC.fq||WC.fqEnt!==ent||WC.fq.id!==(isNew?WC.fq.id:id)){const ex=isNew?null:C.get().find(x=>x.id===id);if(!isNew&&!ex)return `<p><a class="bk" href="#/admin/${ent}">← ${C.title}</a></p><h1>ไม่พบรายการ</h1>`;WC.fq=isNew?Object.assign({id:mkId(C.pre)},C.blank()):clone(ex);WC.fqNew=isNew;WC.fqEnt=ent}
+ const it=WC.fq,fi=fd=>{const [k,l,t,req,opt]=fd,nm='f_'+k,v=it[k],lb=`<label for="${nm}">${l}${req?' *':''}</label>`;
+  if(t==='text')return `${lb}<input id="${nm}" name="${nm}" value="${E(v)}">`;
+  if(t==='area'||t==='area8')return `${lb}<textarea id="${nm}" name="${nm}" rows="${t==='area8'?8:4}">${E(v)}</textarea>`;
+  if(t==='sel'){const o=opt();let g=null,h='';o.forEach(([a,b,gr])=>{if(gr!==undefined&&gr!==g){if(g!==null)h+='</optgroup>';h+=`<optgroup label="${E(gr)}">`;g=gr}h+=`<option value="${E(a)}"${v===a?' selected':''}>${E(b)}</option>`});if(g!==null)h+='</optgroup>';return `${lb}<select id="${nm}" name="${nm}"><option value="">— เลือก —</option>${h}</select>`}
+  if(t==='chk')return `<fieldset><legend>${l}</legend>${FQ_LV.map(([a,b])=>`<label style="display:inline-block;margin-right:14px"><input type="checkbox" name="${nm}" value="${a}"${(v||[]).includes(a)?' checked':''} style="width:auto"> ${b}</label>`).join('')}</fieldset>`;
+  if(t==='img')return fqImg(k,l,it,nm);
+  if(t==='flower'){const w=it.flower||{};return `<fieldset class="fqfs"><legend>ดอกไม้ประจำคณะ (ไม่บังคับ)</legend>${fqImg('flower','รูปดอกไม้ประจำคณะ',it,'fl_img')}<div class="g2"><div><label for="fl_nameTh">ชื่อดอกไม้ (ภาษาไทย)</label><input id="fl_nameTh" name="fl_nameTh" value="${E(w.nameTh)}"></div><div><label for="fl_nameEn">ชื่อดอกไม้ (ภาษาอังกฤษ)</label><input id="fl_nameEn" name="fl_nameEn" value="${E(w.nameEn)}"></div></div><label for="fl_meaning">ความหมายของดอกไม้</label><textarea id="fl_meaning" name="fl_meaning" rows="4">${E(w.meaning)}</textarea><p><button type="button" class="btn s c" onclick="fqFlowerClear()">ล้างข้อมูลดอกไม้</button></p></fieldset>`}
+  return ''};
+ const noPar=C.parent&&!C.parent().length;
+ return `<p><a class="bk" href="#/admin/${ent}">← ${C.title}</a></p><h1>${isNew?'เพิ่ม':'แก้ไข'}${C.one}</h1>${dbBanner()}${noPar?`<div class="msg er">ต้องมี${C.pn}ก่อน <a href="${C.pl}">ไปจัดการ${C.pn}</a></div>`:''}<form id="af" onsubmit="return false">${C.fields.map(fi).join('')}<label for="f_status">สถานะ</label><select id="f_status" name="f_status"><option value="draft"${it.status==='published'?'':' selected'}>ซ่อน / ฉบับร่าง</option><option value="published"${it.status==='published'?' selected':''}>เผยแพร่</option></select><p><button type="button" class="btn b" onclick="fqSave('${ent}')">บันทึก</button> <a class="btn" href="#/admin/${ent}">กลับรายการ</a></p></form>`}
+function fqSync(ent){const C=FQE[ent],it=WC.fq;if(!it)return null;const d=new FormData($('af')),g=n=>STRIP(String(d.get(n)==null?'':d.get(n))).trim();
+ C.fields.forEach(([k,,t])=>{const nm='f_'+k;if(t==='chk')it[k]=d.getAll(nm);else if(t!=='flower'&&d.has(nm))it[k]=g(nm)});
+ if(d.has('f_status'))it.status=d.get('f_status')==='published'?'published':'draft';
+ if(ent==='faculties'&&d.has('fl_nameTh')){const w=it.flower=it.flower||{};w.nameTh=g('fl_nameTh');w.nameEn=g('fl_nameEn');w.meaning=g('fl_meaning');w.img=g('fl_img')}return it}
+async function mdUpload(file,dir){if(!SB||!DBH)throw {message:dbOff()};const ext=CM_MIME[file&&file.type];if(!ext)throw {message:'รองรับเฉพาะไฟล์ PNG, JPG, WebP, GIF'};if(file.size>5*1024*1024)throw {message:'ไฟล์ใหญ่เกิน 5 MB'};
+ const path=dir+'/'+mkId('f')+'.'+ext,{error}=await SB.storage.from('media').upload(path,file,{contentType:file.type,cacheControl:'31536000',upsert:false});if(error)throw error;return SB.storage.from('media').getPublicUrl(path).data.publicUrl}
+function fqPick(k,inp){const f=inp.files&&inp.files[0];inp.value='';if(!f)return;const ent=WC.fqEnt;if(!CM_MIME[f.type])return say('รองรับเฉพาะไฟล์ PNG, JPG, WebP, GIF',false);if(f.size>5*1024*1024)return say('ไฟล์ใหญ่เกิน 5 MB',false);fqSync(ent);const P=fqPend();if(P.files[k]){try{URL.revokeObjectURL(P.files[k].url)}catch(e){}}P.files[k]={file:f,url:URL.createObjectURL(f)};render()}
+function fqImgClear(k){fqSync(WC.fqEnt);const P=fqPend();delete P.files[k];fqImgSet(WC.fq,k,'');render()}
+function fqFlowerClear(){fqSync(WC.fqEnt);fqPend();delete PEND.files.flower;WC.fq.flower=null;render()}
+let FQLIB=[];
+async function fqLib(k){if(!SB||!DBH)return say(dbOff(),false);fqSync(WC.fqEnt);$('md').innerHTML='<div class="modal"><div><h3>คลังสื่อ</h3><p>กำลังโหลด...</p></div></div>';FQLIB=[];
+ try{for(const [b,fo] of [['media','faculties'],['campus','places'],['campus','maps']]){const {data,error}=await SB.storage.from(b).list(fo,{limit:100,sortBy:{column:'created_at',order:'desc'}});if(error)throw error;(data||[]).filter(x=>x&&x.id&&/\.(png|jpe?g|webp|gif)$/i.test(x.name||'')).forEach(x=>FQLIB.push(SB.storage.from(b).getPublicUrl(fo+'/'+x.name).data.publicUrl))}}
+ catch(e){$('md').innerHTML='';return dbErr('โหลดคลังสื่อไม่สำเร็จ',e)}
+ $('md').innerHTML=`<div class="modal"><div class="fqlib"><h3>เลือกจากคลังสื่อ</h3>${FQLIB.length?`<div class="fqlg">${FQLIB.map((u,i)=>`<button type="button" class="fqlb" onclick="fqUse('${k}',${i})"><img src="${E(u)}" alt="" loading="lazy"></button>`).join('')}</div>`:'<p>ยังไม่มีรูปในคลังสื่อ</p>'}<p><button class="btn" onclick="$('md').innerHTML=''">ปิด</button></p></div></div>`}
+function fqUse(k,i){const u=FQLIB[i];$('md').innerHTML='';if(!u||!WC.fq)return;fqPend();delete PEND.files[k];fqImgSet(WC.fq,k,u);render()}
+async function fqSave(ent){const C=FQE[ent],it=fqSync(ent);if(!it)return;
+ for(const [k,l,t,req] of C.fields){if(req&&!it[k])return say('กรุณากรอก/เลือก: '+l,false)}
+ if(C.parent&&!C.parent().some(x=>x.id===it[C.pk]))return say('ต้นสังกัดที่เลือกไม่มีอยู่ในระบบ',false);
+ if(ent==='majors'&&(it.levels||[]).some(l=>!FQ_LV.some(x=>x[0]===l)))return say('ระดับการศึกษาไม่ถูกต้อง',false);
+ if(ent==='programs'&&!FQ_LV.some(x=>x[0]===it.level))return say('ระดับการศึกษาไม่ถูกต้อง',false);
+ if(!DBH)return say(dbOff(),false);
+ const P=fqPend();
+ try{for(const k of Object.keys(P.files))fqImgSet(it,k,await mdUpload(P.files[k].file,'faculties'));
+  for(const k of ['cover','logo'])if(ent==='faculties'&&it[k]&&!okU(it[k]))return say('ลิงก์รูปต้องขึ้นต้นด้วย https://',false);
+  if(ent==='faculties'){const w=it.flower;if(w){if(w.img&&!okU(w.img))return say('ลิงก์รูปดอกไม้ต้องขึ้นต้นด้วย https://',false);if(!w.img&&!w.nameTh&&!w.nameEn&&!w.meaning)it.flower=null}}
+  const arr=C.get().slice(),i=arr.findIndex(x=>x.id===it.id);if(i>=0)arr[i]=it;else arr.push(it);await putDoc(ent,arr);
+  const wasNew=WC.fqNew,nid=it.id;WC={};P.files={};
+  if(wasNew){const h='#/admin/'+ent+'/edit/'+nid;if(window.history&&history.replaceState)history.replaceState(null,'',h);else location.hash=h;last=h}
+  say('บันทึกเรียบร้อย')}
+ catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
 /* ===== เอฟเฟกต์เสียง (สังเคราะห์ด้วย Web Audio ไม่มีไฟล์เสียง; เริ่มหลังผู้ใช้โต้ตอบครั้งแรกเท่านั้น) ===== */
 const SND={on:true,vol:50,ctx:null,master:null,ready:false,nav:false};
 (function(){try{const v=JSON.parse(localStorage.getItem('kit-sound')||'null');if(v){if(typeof v.on==='boolean')SND.on=v.on;if(Number.isFinite(+v.vol))SND.vol=Math.max(0,Math.min(100,Math.round(+v.vol)))}}catch(e){}})();
@@ -381,7 +514,7 @@ function sndPrev(){sndWake();sndPlay('tick')}
  addEventListener('hashchange',()=>{if(SND.nav)sndPlay('nav')});
  setTimeout(()=>{SND.nav=true},0);
 }catch(e){}})();
-function setTitle(p){const s=getSet();let t=s.nameTh+' | '+s.nameEn+' ('+BRAND.short+')';if(p[0]==='admin')t='Admin · '+BRAND.short+' | '+s.nameTh;else if(p[0]==='p'){const q=getPages().find(x=>x.slug===p[1]&&x.status==='published');if(q)t=q.title+' | '+s.nameTh}document.title=t}
+function setTitle(p){const s=getSet();let t=s.nameTh+' | '+s.nameEn+' ('+BRAND.short+')';if(p[0]==='admin')t='Admin · '+BRAND.short+' | '+s.nameTh;else if(p[0]==='faculty'){const q=fqPub().F.find(x=>x.id===p[1]);if(q)t=q.nameTh+' | '+s.nameTh}else if(p[0]==='p'){const q=getPages().find(x=>x.slug===p[1]&&x.status==='published');if(q)t=q.title+' | '+s.nameTh}document.title=t}
 function render(){const h=location.hash||'#/',p=h.replace(/^#\/?/,'').split('/');if(h!==last){if(innerWidth<760)sbc=true;toast=null;WC={};last=h}
  setTitle(p);let html;try{if(p[0]==='admin')html=admin(p.slice(1));else html=shell(p[0]===''?homeView():PUB[p[0]]?PUB[p[0]](p[1]):nf())}catch(e){html='<div class="w sec"><div class="msg er">เกิดข้อผิดพลาด: '+E(e.message)+'</div></div>'}
  const y=scrollY;$('app').innerHTML=html;sndSync();cmMount();if(h===last&&!document.activeElement.matches('input,textarea'))scrollTo(0,y)}

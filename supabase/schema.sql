@@ -3,7 +3,7 @@
 
 -- 1) ตารางเก็บเนื้อหาเว็บไซต์: เมนู / หน้าเว็บ / กิจกรรมปฏิทิน / ตั้งค่า (+หน้าแรก)
 create table if not exists public.site_docs (
-  key        text primary key check (key in ('menu','pages','events','settings','campus')),
+  key        text primary key check (key in ('menu','pages','events','settings','campus','fgroups','faculties','majors','programs')),
   data       jsonb not null,
   updated_at timestamptz not null default now(),
   constraint site_docs_shape check (
@@ -14,7 +14,7 @@ create table if not exists public.site_docs (
 
 -- รองรับฐานข้อมูลที่สร้างไว้ก่อนมีแผนผังสถาบัน (key 'campus')
 alter table public.site_docs drop constraint if exists site_docs_key_check;
-alter table public.site_docs add  constraint site_docs_key_check check (key in ('menu','pages','events','settings','campus'));
+alter table public.site_docs add  constraint site_docs_key_check check (key in ('menu','pages','events','settings','campus','fgroups','faculties','majors','programs'));
 alter table public.site_docs drop constraint if exists site_docs_shape;
 alter table public.site_docs add  constraint site_docs_shape check (
   (key in ('settings','campus') and jsonb_typeof(data) = 'object') or
@@ -57,6 +57,19 @@ create policy site_docs_staff_delete on public.site_docs for delete to authentic
 drop policy if exists staff_read_self on public.staff;
 create policy staff_read_self on public.staff for select to authenticated using (user_id = auth.uid());
 
+-- ตัวช่วย (ภายในเท่านั้น): แถวที่เผยแพร่ของเอกสารแบบ array และสังกัดต้นสังกัดที่เผยแพร่แล้ว
+create or replace function public._pub_rows(p_key text, p_parent text, p_ids text[])
+returns jsonb language sql stable security definer set search_path = '' as $$
+  select coalesce(jsonb_agg(r.v order by r.n), '[]'::jsonb)
+  from jsonb_array_elements(
+         case when jsonb_typeof((select data from public.site_docs where key = p_key)) = 'array'
+              then (select data from public.site_docs where key = p_key) else '[]'::jsonb end
+       ) with ordinality as r(v, n)
+  where r.v->>'status' = 'published'
+    and (p_parent is null or (r.v->>p_parent) = any (p_ids));
+$$;
+revoke all on function public._pub_rows(text, text, text[]) from public, anon, authenticated;
+
 -- 6) ผู้เข้าชมทั่วไป: อ่านได้เฉพาะ "สิ่งที่เผยแพร่แล้ว" ผ่านฟังก์ชันนี้เท่านั้น (ฉบับร่างและเมนูที่ซ่อนไม่ถูกส่งออก)
 create or replace function public.get_public_site()
 returns jsonb language plpgsql stable security definer set search_path = '' as $$
@@ -67,6 +80,10 @@ declare
   v_events jsonb;
   v_set    jsonb;
   v_campus jsonb;
+  v_fg     jsonb;
+  v_fa     jsonb;
+  v_mj     jsonb;
+  v_pg     jsonb;
 begin
   select coalesce(jsonb_agg(p.v order by p.n), '[]'::jsonb) into v_pages
   from jsonb_array_elements(coalesce((select data from public.site_docs where key = 'pages'), '[]'::jsonb)) with ordinality as p(v, n)
@@ -96,7 +113,17 @@ begin
       else '[]'::jsonb end);
   end if;
 
-  return jsonb_build_object('menu', v_menu, 'pages', v_pages, 'events', v_events, 'settings', v_set, 'campus', v_campus);
+  -- คณะและหลักสูตร: ต้องเผยแพร่ครบทุกระดับต้นสังกัด (กลุ่ม → คณะ → สาขา → หลักสูตร)
+  v_fg := public._pub_rows('fgroups', null, null);
+  v_fa := public._pub_rows('faculties', 'groupId',
+            (select coalesce(array_agg(x->>'id'), '{}'::text[]) from jsonb_array_elements(v_fg) x));
+  v_mj := public._pub_rows('majors', 'facultyId',
+            (select coalesce(array_agg(x->>'id'), '{}'::text[]) from jsonb_array_elements(v_fa) x));
+  v_pg := public._pub_rows('programs', 'majorId',
+            (select coalesce(array_agg(x->>'id'), '{}'::text[]) from jsonb_array_elements(v_mj) x));
+
+  return jsonb_build_object('menu', v_menu, 'pages', v_pages, 'events', v_events, 'settings', v_set, 'campus', v_campus,
+                            'fgroups', v_fg, 'faculties', v_fa, 'majors', v_mj, 'programs', v_pg);
 end;
 $$;
 revoke all on function public.get_public_site() from public;
@@ -124,3 +151,18 @@ create policy campus_staff_select on storage.objects for select to authenticated
 create policy campus_staff_insert on storage.objects for insert to authenticated with check (bucket_id = 'campus' and public.is_staff());
 create policy campus_staff_update on storage.objects for update to authenticated using (bucket_id = 'campus' and public.is_staff()) with check (bucket_id = 'campus' and public.is_staff());
 create policy campus_staff_delete on storage.objects for delete to authenticated using (bucket_id = 'campus' and public.is_staff());
+
+-- 9) Storage: คลังสื่อรูปคณะ/ดอกไม้ประจำคณะ (bucket 'media')
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('media', 'media', true, 5242880, array['image/png','image/jpeg','image/webp','image/gif'])
+on conflict (id) do update
+  set public = true, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists media_staff_select on storage.objects;
+drop policy if exists media_staff_insert on storage.objects;
+drop policy if exists media_staff_update on storage.objects;
+drop policy if exists media_staff_delete on storage.objects;
+create policy media_staff_select on storage.objects for select to authenticated using (bucket_id = 'media' and public.is_staff());
+create policy media_staff_insert on storage.objects for insert to authenticated with check (bucket_id = 'media' and public.is_staff());
+create policy media_staff_update on storage.objects for update to authenticated using (bucket_id = 'media' and public.is_staff()) with check (bucket_id = 'media' and public.is_staff());
+create policy media_staff_delete on storage.objects for delete to authenticated using (bucket_id = 'media' and public.is_staff());
