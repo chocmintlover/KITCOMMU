@@ -159,7 +159,7 @@ const AG=[['ภาพรวม',[['dash','แดชบอร์ด']]],['จั�
 function adminNav(sec){return `<aside aria-label="เมนูหลังบ้าน"><b class="ab">${kitTile(30)}<span>Admin · ${BRAND.short}</span>${soundBtn()}${themeBtn()}</b><br><a href="#/">&#8592; ดูเว็บไซต์</a><small style="display:block;opacity:.7;margin:6px 0;word-break:break-all">${E(Auth.email)}</small><button type="button" class="btn s" onclick="doLogout()">ออกจากระบบ</button>${AG.map(([g,it,fold])=>{const ln=it.map(([k,t])=>{const on=sec===k;return `<a href="#/admin/${k}" class="${on?'on':''}"${on?' aria-current="page"':''}>${t}</a>`}).join('');return fold?`<details class="agd"${FQN.open||it.some(x=>x[0]===sec)?' open':''} ontoggle="FQN.open=this.open"><summary class="ag">${g}</summary>${ln}</details>`:`<div class="ag">${g}</div>${ln}`}).join('')}</aside>`}
 function sbt(){sbc=!sbc;render()}
 function admin(parts){if(!Auth.canAccessAdmin())return loginView();const sec=parts[0]||'dash';if(sec!=='home')WC.hm=null;let main;
- if(sec==='dash')main=dashboard();else if(sec==='pages'&&parts[1]==='edit')main=pageEditor(parts[2]);else if(sec==='pages')main=pagesAdmin();else if(sec==='home')main=homeAdmin();else if(sec==='menu')main=menuAdmin();else if(sec==='events'&&parts[1]==='edit')main=eventEditor(parts[2]);else if(sec==='events')main=eventsAdmin();else if(sec==='campus'&&parts[1]==='edit')main=cmpEditor(parts[2]);else if(sec==='campus')main=campusAdmin();else if(sec==='courses')main=parts[1]==='edit'?cqEditor(parts[2]):parts[1]==='merge'?cqMerge():cqAdmin();else if(FQE[sec])main=parts[1]==='edit'?fqEditor(sec,parts[2]):fqAdmin(sec);else if(sec==='typo')main=typoAdmin();else if(sec==='settings')main=settingsAdmin();else main='<p>ไม่พบเมนู</p>';
+ if(sec==='dash')main=dashboard();else if(sec==='pages'&&parts[1]==='edit')main=pageEditor(parts[2]);else if(sec==='pages')main=pagesAdmin();else if(sec==='home')main=homeAdmin();else if(sec==='menu')main=menuAdmin();else if(sec==='events'&&parts[1]==='edit')main=eventEditor(parts[2]);else if(sec==='events')main=eventsAdmin();else if(sec==='campus'&&parts[1]==='edit')main=cmpEditor(parts[2]);else if(sec==='campus')main=campusAdmin();else if(sec==='courses')main=parts[1]==='edit'?cqEditor(parts[2]):parts[1]==='merge'?cqMerge():parts[1]==='program'?cqProg(parts[2]||''):cqAdmin();else if(FQE[sec])main=parts[1]==='edit'?fqEditor(sec,parts[2]):fqAdmin(sec);else if(sec==='typo')main=typoAdmin();else if(sec==='settings')main=settingsAdmin();else main='<p>ไม่พบเมนู</p>';
  return `<div class="adm${sbc?' c':''}">${adminNav(sec)}<main><button class="btn s" onclick="sbt()" aria-expanded="${!sbc}" aria-label="ย่อหรือขยายเมนู">${ic('menu')} เมนู</button>${toast?`<div class="msg ${toast.ok?'ok':'er'}">${E(toast.t)}</div>`:''}${main}</main></div>`}
 const dbBanner=()=>`<div class="msg ${DBH&&CW!==false?'ok':'er'}">${DBH?(CW===false?'เชื่อมต่อฐานข้อมูลแล้ว แต่บัญชีนี้ไม่มีสิทธิ์เขียนข้อมูล (ดูได้อย่างเดียว) ต้องเป็นเจ้าของหรือผู้แก้ไข':'เชื่อมต่อ Supabase แล้ว บันทึกลงฐานข้อมูลจริง (เฉพาะทีมงานที่ได้รับอนุญาต)'):dbOff()}</div>`;
 /* ===== Admin: dashboard ===== */
@@ -266,7 +266,7 @@ function cqAdmin(){const L=cqFilter(),tot=cqIndex().size,vis=L.slice(0,CQ.n),
  fo=fqF().slice().sort((a,b)=>(a.nameTh||'').localeCompare(b.nameTh||'')),mo=fqM().filter(m=>!CQ.fac||m.facultyId===CQ.fac).sort((a,b)=>(a.nameTh||'').localeCompare(b.nameTh||''));
  const op=(a,v,l)=>`<option value="${E(v)}"${a===v?' selected':''}>${E(l)}</option>`;
  return `<h1>ค้นหารายวิชา</h1><p>ค้นหาและแก้ไขข้อมูลกลางของรายวิชาจากทุกหลักสูตรในที่เดียว วิชาที่มีรหัสเดียวกันถือเป็นวิชาเดียวกันและจะอัปเดตตรงกันทุกหลักสูตร</p>${dbBanner()}
- <div class="g2"><div><label for="cqq">ค้นหา (รหัสวิชา ชื่อวิชาไทย/อังกฤษ คณะ สาขา)</label><input id="cqq" type="search" value="${E(CQ.q)}" oninput="cqSet('q',this.value)" placeholder="เช่น ENG101 หรือ แคลคูลัส"></div>
+ <p><a class="btn" href="#/admin/courses/program">จัดรายวิชาตามหลักสูตร (4 ประเภท)</a></p><div class="g2"><div><label for="cqq">ค้นหา (รหัสวิชา ชื่อวิชาไทย/อังกฤษ คณะ สาขา)</label><input id="cqq" type="search" value="${E(CQ.q)}" oninput="cqSet('q',this.value)" placeholder="เช่น ENG101 หรือ แคลคูลัส"></div>
  <div><label for="cqlv">ระดับการศึกษา</label><select id="cqlv" onchange="cqSet('lv',this.value)">${op(CQ.lv,'','ทุกระดับ')}${FQ_LV.map(([k,l])=>op(CQ.lv,k,l)).join('')}</select></div>
  <div><label for="cqfa">คณะ/วิทยาลัย</label><select id="cqfa" onchange="cqSet('fac',this.value)">${op(CQ.fac,'','ทุกคณะ')}${fo.map(f=>op(CQ.fac,f.id,f.nameTh)).join('')}</select></div>
  <div><label for="cqmj">สาขาวิชา${CQ.fac?'':' (เลือกคณะเพื่อกรองเฉพาะสาขาของคณะนั้น)'}</label><select id="cqmj" onchange="cqSet('maj',this.value)">${op(CQ.maj,'','ทุกสาขา')}${mo.map(m=>op(CQ.maj,m.id,m.nameTh)).join('')}</select></div></div>
@@ -288,7 +288,7 @@ function cqEditor(raw){let k='';try{k=cqNorm(decodeURIComponent(raw||''))}catch(
  <label for="cq_descEn">คำอธิบายรายวิชาภาษาอังกฤษ (ถ้ามี)</label><textarea id="cq_descEn" name="descEn" rows="4">${E(f.descEn)}</textarea>
  <p><button type="button" class="btn b" onclick="cqSave()">บันทึก</button> <a class="btn" href="#/admin/courses">ยกเลิก</a></p></form>
  <h2>หลักสูตรที่ใช้รายวิชานี้</h2><p><small>คณะ สาขา และระดับการศึกษาของวิชามาจากหลักสูตรที่ใช้วิชานี้ ปรับได้ที่หน้าแก้ไขหลักสูตร (ประเภทวิชาและวิชาบังคับก่อนเป็นค่าของแต่ละหลักสูตร ไม่เปลี่ยนจากหน้านี้)</small></p>
- ${e.uses.map(u=>`<div class="row"><b>${E(u.p.nameTh)}</b> ${stTag(u.p)}<br><small>${E(u.f?u.f.nameTh:'ไม่มีคณะ')} › ${E(u.m?u.m.nameTh:'ไม่มีสาขา')} · ${E(fqLv(u.p.level))} · ${E(csTy(u.c.type))}${u.c.show===false?' · ซ่อนอยู่':''}</small> <a class="btn s" href="#/admin/programs/edit/${E(u.p.id)}">เปิดหลักสูตร</a></div>`).join('')}`}
+ ${e.uses.map(u=>`<div class="row"><b>${E(u.p.nameTh)}</b> ${stTag(u.p)}<br><small>${E(u.f?u.f.nameTh:'ไม่มีคณะ')} › ${E(u.m?u.m.nameTh:'ไม่มีสาขา')} · ${E(fqLv(u.p.level))} · ${E(csTy(u.c.type))}${u.c.show===false?' · ซ่อนอยู่':''}</small> <a class="btn s" href="#/admin/courses/program/${E(u.p.id)}">จัดรายวิชา</a> <a class="btn s" href="#/admin/programs/edit/${E(u.p.id)}">เปิดหลักสูตร</a></div>`).join('')}`}
 function cqSync(){const fm=$('cqf');if(!fm||!WC.cq)return;const d=new FormData(fm);CQ_F.forEach(x=>{if(d.has(x))WC.cq.f[x]=String(d.get(x)||'')})}
 async function cqSave(){cqSync();const w=WC.cq;if(!w)return;if(!DBH)return say(dbOff(),false);
  const f={};CQ_F.forEach(x=>f[x]=w.f[x].trim());
@@ -355,6 +355,49 @@ async function cqMgDo(){$('md').innerHTML='';const w=WC.mg;if(!w)return;if(!DBH)
   CQ.sel.clear();CQ.q=r.fin.code;CQ.fac='';CQ.maj='';CQ.lv='';WC={};const h='#/admin/courses';if(window.history&&history.replaceState)history.replaceState(null,'',h);else location.hash=h;last=h;
   say('รวมรายวิชาเรียบร้อย: '+w.ks.length+' รหัสเป็น '+r.fin.code+' ปรับ '+r.chg.length+' รายการใน '+r.progs.length+' หลักสูตร')
  }catch(e){dbErr('รวมรายวิชาไม่สำเร็จ (ไม่มีข้อมูลถูกแก้ไข)',e)}}
+
+/* ===== จัดรายวิชาตามหลักสูตร: 4 ประเภท (ประเภทวิชาเป็นค่าของแต่ละหลักสูตร: programs[].plan[].terms[].courses[].type) =====
+   คลังรายวิชา = ดัชนีจากรหัสวิชาในทุกหลักสูตร (cqIndex) เพิ่ม = คัดลอกข้อมูลกลางเข้าแผนการศึกษาของหลักสูตรนี้ นำออก = เอาออกจากหลักสูตรนี้เท่านั้น */
+const CQP={q:'',ty:'required',term:''};
+async function cqFresh(){const {data,error}=await SB.from('site_docs').select('key,data');if(error)throw error;const r=(data||[]).find(x=>x.key==='programs');return Array.isArray(r&&r.data)?clone(r.data):[]}
+const cqUses=(P,k)=>P.filter(p=>fqCsAll(p.plan).some(({c})=>cqNorm(c.code)===k)).length;
+function cqProg(pid){const bk='<p><a class="bk" href="#/admin/courses">← ค้นหารายวิชา</a></p>',PL=fqP(),p=PL.find(x=>x.id===pid);
+ const fo=fqF(),mj=new Map(fqM().map(m=>[m.id,m])),opts=fo.map(f=>{const ps=PL.filter(x=>{const m=mj.get(x.majorId);return m&&m.facultyId===f.id});return ps.length?`<optgroup label="${E(f.nameTh)}">${ps.map(x=>`<option value="${E(x.id)}"${x.id===pid?' selected':''}>${E(x.nameTh)} (${E(fqLv(x.level))})</option>`).join('')}</optgroup>`:''}).join('')+PL.filter(x=>!mj.get(x.majorId)).map(x=>`<option value="${E(x.id)}"${x.id===pid?' selected':''}>${E(x.nameTh)}</option>`).join('');
+ const sel=`<label for="cqps">เลือกหลักสูตรที่ต้องการจัดการ</label><select id="cqps" onchange="location.hash='#/admin/courses/program/'+this.value"><option value="">— เลือกหลักสูตร —</option>${opts}</select>`;
+ if(!p)return `${bk}<h1>จัดรายวิชาตามหลักสูตร</h1>${dbBanner()}${sel}${pid?'<div class="msg er">ไม่พบหลักสูตรนี้</div>':'<p><small>เลือกหลักสูตรเพื่อจัดรายวิชาเป็น วิชาบังคับ / วิชาเลือกเฉพาะทาง / วิชาเลือกในหลักสูตร / วิชาเลือกเสรี</small></p>'}`;
+ const m=mj.get(p.majorId),f=m&&fo.find(x=>x.id===m.facultyId),all=fqCsAll(p.plan),have=new Set(all.map(x=>cqNorm(x.c.code)).filter(Boolean)),
+ terms=all.length||(p.plan||[]).some(y=>(y.terms||[]).length)?(p.plan||[]).flatMap((y,yi)=>(y.terms||[]).map((t,ti)=>({id:t.id,l:(y.name||'ชั้นปีที่ '+(yi+1))+' › '+(t.name||'ภาคการศึกษาที่ '+(ti+1))}))):[];
+ if(!terms.some(t=>t.id===CQP.term))CQP.term=terms[0]?terms[0].id:'';
+ const loc=new Map();(p.plan||[]).forEach((y,yi)=>(y.terms||[]).forEach((t,ti)=>(t.courses||[]).forEach(c=>loc.set(c.id,(y.name||'ชั้นปีที่ '+(yi+1))+' › '+(t.name||'ภาคการศึกษาที่ '+(ti+1))))));
+ const tsel=(cur,fn)=>`<select aria-label="ประเภทวิชา" onchange="${fn}">${CS_TY.map(([v,l])=>`<option value="${v}"${csTyK(cur)===v?' selected':''}>${l}</option>`).join('')}</select>`;
+ const grp=CS_TY.map(([k,l])=>{const it=all.filter(x=>csTyK(x.c.type)===k),cr=it.reduce((s,x)=>s+(parseFloat(x.c.credits)||0),0);
+  return `<h2>${l} <small>(${it.length} วิชา${it.length?' · '+cr+' หน่วยกิต':''})</small></h2>${it.length?`<div class="cqw"><table class="cqt"><thead><tr><th>รหัสวิชา</th><th>ชื่อวิชา</th><th>หน่วยกิต</th><th>ภาคการศึกษา</th><th>ประเภทวิชา</th><th></th></tr></thead><tbody>${it.map(({c})=>`<tr><td data-l="รหัสวิชา"><b>${E(c.code)}</b></td><td data-l="ชื่อวิชา">${E(c.name)}<br><small>${E(c.nameEn)}</small>${c.show===false?' <span class="tag">ซ่อนอยู่</span>':''}</td><td data-l="หน่วยกิต">${E(c.credits)}</td><td data-l="ภาค"><small>${E(loc.get(c.id)||'')}</small></td><td data-l="ประเภท">${tsel(c.type,`cqPgType('${E(c.id)}',this.value)`)}</td><td><button type="button" class="btn s c" onclick="cqPgDelAsk('${E(c.id)}')">นำออก</button></td></tr>`).join('')}</tbody></table></div>`:'<p><small>ยังไม่มีรายวิชาในประเภทนี้</small></p>'}`}).join('');
+ const q=CQP.q.trim().toLowerCase(),lib=[...cqIndex().values()].filter(e=>!have.has(e.key)&&(!q||cqHay(e).includes(q))).sort((a,b)=>a.key.localeCompare(b.key)),
+ add=`<h2>เพิ่มรายวิชาจากคลังรายวิชา</h2><div class="g2"><div><label for="cqpq">ค้นหา (รหัสวิชา หรือชื่อวิชา)</label><input id="cqpq" type="search" value="${E(CQP.q)}" oninput="cqpSet('q',this.value)"></div>
+ <div><label for="cqpty">เพิ่มเป็นประเภท</label><select id="cqpty" onchange="cqpSet('ty',this.value)">${CS_TY.map(([v,l])=>`<option value="${v}"${CQP.ty===v?' selected':''}>${l}</option>`).join('')}</select></div></div>
+ ${terms.length?`<label for="cqptm">เพิ่มเข้าภาคการศึกษา</label><select id="cqptm" onchange="cqpSet('term',this.value)">${terms.map(t=>`<option value="${E(t.id)}"${CQP.term===t.id?' selected':''}>${E(t.l)}</option>`).join('')}</select>`:'<p><small>หลักสูตรนี้ยังไม่มีชั้นปี/ภาคการศึกษา ระบบจะสร้าง "ชั้นปีที่ 1" ให้อัตโนมัติเมื่อเพิ่มวิชา</small></p>'}
+ <p class="evm" role="status" aria-live="polite">${q?'พบ '+lib.length+' รายวิชาในคลังที่ยังไม่อยู่ในหลักสูตรนี้':'วิชาในคลังที่ยังไม่อยู่ในหลักสูตรนี้ '+lib.length+' รายวิชา (พิมพ์เพื่อค้นหา)'}</p>
+ ${lib.slice(0,20).map(e=>`<div class="row"><b>${E(e.code)}</b> ${E(e.name)} <small>/ ${E(e.nameEn)} · ${E(e.credits)} หน่วยกิต · ใช้ใน ${e.uses.length} หลักสูตร</small> <button type="button" class="btn s b" data-k="${E(e.key)}" onclick="cqPgAdd(this.dataset.k)">เพิ่ม</button></div>`).join('')}${lib.length>20?`<p><small>แสดง 20 รายการแรก พิมพ์ค้นหาเพื่อกรองเพิ่ม</small></p>`:''}`;
+ return `${bk}<h1>จัดรายวิชา: ${E(p.nameTh)}</h1>${dbBanner()}<p>${E(f?f.nameTh:'ไม่มีคณะ')} › ${E(m?m.nameTh:'ไม่มีสาขา')} · ${E(fqLv(p.level))} ${stTag(p)} · <a href="#/admin/programs/edit/${E(p.id)}">เปิดหน้าแก้ไขหลักสูตร</a></p>${sel}${grp}${add}`}
+function cqpSet(k,v){CQP[k]=v;const a=document.activeElement,s=a&&a.id==='cqpq'?a.selectionStart:null;render();if(s!=null){const n=$('cqpq');if(n){n.focus();try{n.setSelectionRange(s,s)}catch(e){}}}}
+const cqPgId=()=>(location.hash.split('/')[4]||'');
+async function cqPgRun(fn,okMsg){if(!DBH)return say(dbOff(),false);
+ try{const P=await cqFresh(),p=P.find(x=>x.id===cqPgId());if(!p){SHR.programs=P;return say('ไม่พบหลักสูตรนี้ (อาจถูกลบโดยผู้ดูแลคนอื่น)',false)}
+  const er=fn(P,p);if(er){SHR.programs=P;return say(er,false)}await putDoc('programs',P);say(okMsg)}catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
+function cqPgAdd(k){cqPgRun((P,p)=>{const e=cqIndex(P).get(k);if(!e)return 'ไม่พบรายวิชานี้ในคลังแล้ว (อาจถูกเปลี่ยนรหัสหรือถูกนำออก) โหลดข้อมูลล่าสุดแล้ว';
+  if(fqCsAll(p.plan).some(({c})=>cqNorm(c.code)===k))return 'หลักสูตรนี้มีรายวิชา '+e.code+' อยู่แล้ว';
+  if(!CS_TY.some(x=>x[0]===CQP.ty))return 'ประเภทวิชาไม่ถูกต้อง';
+  if(!Array.isArray(p.plan))p.plan=[];let t=null;p.plan.forEach(y=>(y.terms||[]).forEach(x=>{if(x.id===CQP.term)t=x}));
+  if(!t){let yr=p.plan.find(y=>Array.isArray(y.terms)&&y.terms.length);if(yr)t=yr.terms[0];else{if(p.plan.length>=6)return 'แผนการศึกษารองรับสูงสุด 6 ชั้นปี';yr={id:mkId('yr'),name:'ชั้นปีที่ '+(p.plan.length+1),note:'',terms:[fqNewTerm('ภาคการศึกษาที่ 1'),fqNewTerm('ภาคการศึกษาที่ 2')]};p.plan.push(yr);t=yr.terms[0]}}
+  if(!Array.isArray(t.courses))t.courses=[];
+  t.courses.push({id:mkId('cs'),code:e.code,name:e.name,nameEn:e.nameEn,credits:e.credits,type:CQP.ty,desc:e.desc,descEn:e.descEn,pre:[],show:true});return ''},'เพิ่มรายวิชาเข้าหลักสูตรเรียบร้อย')}
+function cqPgType(cid,ty){cqPgRun((P,p)=>{if(!CS_TY.some(x=>x[0]===ty))return 'ประเภทวิชาไม่ถูกต้อง';const x=fqCsAll(p.plan).find(y=>y.c.id===cid);if(!x)return 'ไม่พบรายวิชานี้ในหลักสูตรแล้ว (อาจถูกนำออกโดยผู้ดูแลคนอื่น) โหลดข้อมูลล่าสุดแล้ว';x.c.type=ty;return ''},'เปลี่ยนประเภทวิชาเรียบร้อย')}
+function cqPgDelAsk(cid){const p=fqP().find(x=>x.id===cqPgId()),x=p&&fqCsAll(p.plan).find(y=>y.c.id===cid);if(!x)return;const c=x.c,k=cqNorm(c.code),dep=fqCsAll(p.plan).filter(y=>y.c.id!==cid&&(y.c.pre||[]).includes(cid)).map(y=>y.c.code||y.c.name);
+ const sole=!k||cqUses(fqP(),k)<2;
+ $('md').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div><h3>นำรายวิชาออกจากหลักสูตร</h3><p><b>${E(c.code)}</b> ${E(c.name)}</p>${sole?`<div class="msg er">ยังนำออกไม่ได้: วิชานี้${k?'ไม่ได้ใช้ในหลักสูตรอื่น':'ยังไม่มีรหัสวิชา'} หากนำออก ข้อมูลวิชาจะหายไปจากคลังรายวิชา (ปัจจุบันคลังคำนวณจากแผนการศึกษาของหลักสูตรต่าง ๆ)</div>`:`<p>จะนำวิชานี้ออกจากหลักสูตรนี้เท่านั้น ข้อมูลวิชาในคลังและหลักสูตรอื่นไม่เปลี่ยน</p>${dep.length?`<p><small>วิชาที่ใช้วิชานี้เป็นวิชาบังคับก่อนในหลักสูตรนี้: ${E(dep.join(', '))} ระบบจะเอาเงื่อนไขนั้นออก</small></p>`:''}`}
+ <p>${sole?'':`<button type="button" class="btn c" onclick="cqPgDel('${E(cid)}')">ยืนยันนำออก</button> `}<button type="button" class="btn" onclick="$('md').innerHTML=''">${sole?'ปิด':'ยกเลิก'}</button></p></div></div>`}
+function cqPgDel(cid){$('md').innerHTML='';cqPgRun((P,p)=>{const x=fqCsAll(p.plan).find(y=>y.c.id===cid);if(!x)return 'ไม่พบรายวิชานี้ในหลักสูตรแล้ว โหลดข้อมูลล่าสุดแล้ว';const k=cqNorm(x.c.code);if(!k||cqUses(P,k)<2)return 'ไม่สามารถนำออกได้: วิชานี้จะหายไปจากคลังรายวิชา';
+  x.t.courses=x.t.courses.filter(c=>c.id!==cid);fqPurgePre(p.plan,[cid]);return ''},'นำรายวิชาออกจากหลักสูตรเรียบร้อย (ข้อมูลวิชาในคลังยังอยู่)')}
 
 /* ===== Router ===== */
 
@@ -465,7 +508,7 @@ function cmpkClear(){const f=document.getElementById('af');if(f){f.elements['cp_
 const FQ_LV=[['bachelor','ปริญญาตรี'],['master','ปริญญาโท'],['doctor','ปริญญาเอก'],['other','อื่น ๆ']];
 const fqLv=k=>(FQ_LV.find(x=>x[0]===k)||FQ_LV[FQ_LV.length-1])[1];
 /* ประเภทรายวิชา: 'required' / 'elective' เป็นค่าเดิมในข้อมูลอยู่แล้ว (elective เดิมแสดงว่า "วิชาเลือก" ตอนนี้เรียก "วิชาเลือกเฉพาะทาง") เพิ่ม 'free' */
-const CS_TY=[['required','วิชาบังคับ'],['elective','วิชาเลือกเฉพาะทาง'],['free','วิชาเลือกเสรี']];
+const CS_TY=[['required','วิชาบังคับ'],['elective','วิชาเลือกเฉพาะทาง'],['curr_elective','วิชาเลือกในหลักสูตร'],['free','วิชาเลือกเสรี']];
 const csTyK=k=>CS_TY.some(x=>x[0]===k)?k:'required';
 const csTy=k=>CS_TY.find(x=>x[0]===csTyK(k))[1];
 const fqArr=k=>{const v=getSH(k);return Array.isArray(v)?v.filter(x=>x&&x.id):[]};
