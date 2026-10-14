@@ -155,11 +155,11 @@ for(const [l,u] of [[h.b1t,h.b1u],[h.b2t,h.b2u]])if((l&&!okL(u))||(!l&&u))return
 if(!DBH)return say(dbOff(),false);try{await putDoc('settings',Object.assign({},getSH('settings')||{},{home:h,footer:STRIP(d.get('f')||'').trim()}));WC.hm=null;say('บันทึกเนื้อหาหน้าแรกเรียบร้อย ผู้เข้าชมเห็นทันที')}catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
 const PUB={p(sl){const q=getPages().find(x=>x.slug===sl);return q&&q.status==='published'?pageView(q):nf()},preview(id){const q=pgById(id);return q?pageView(q,1):nf()}};
 /* ===== Admin: shell ===== */
-const AG=[['ภาพรวม',[['dash','แดชบอร์ด']]],['จัดการเว็บไซต์',[['home','เนื้อหาหน้าแรก'],['pages','จัดการเมนูและหน้าเว็บ'],['menu','แก้ไขเมนูแบบละเอียด'],['events','จัดการกิจกรรมปฏิทิน'],['campus','จัดการแผนผังสถาบัน']]],['คณะและหลักสูตร',[['fgroups','จัดการกลุ่มคณะ'],['faculties','จัดการคณะและวิทยาลัย'],['majors','จัดการสาขาวิชา'],['programs','จัดการหลักสูตร']],true],['ตั้งค่า',[['settings','การตั้งค่าเว็บไซต์']]]];
+const AG=[['ภาพรวม',[['dash','แดชบอร์ด']]],['จัดการเว็บไซต์',[['home','เนื้อหาหน้าแรก'],['pages','จัดการเมนูและหน้าเว็บ'],['menu','แก้ไขเมนูแบบละเอียด'],['events','จัดการกิจกรรมปฏิทิน'],['campus','จัดการแผนผังสถาบัน']]],['คณะและหลักสูตร',[['fgroups','จัดการกลุ่มคณะ'],['faculties','จัดการคณะและวิทยาลัย'],['majors','จัดการสาขาวิชา'],['programs','จัดการหลักสูตร'],['typo','ตั้งค่าตัวอักษร']],true],['ตั้งค่า',[['settings','การตั้งค่าเว็บไซต์']]]];
 function adminNav(sec){return `<aside aria-label="เมนูหลังบ้าน"><b class="ab">${kitTile(30)}<span>Admin · ${BRAND.short}</span>${soundBtn()}${themeBtn()}</b><br><a href="#/">&#8592; ดูเว็บไซต์</a><small style="display:block;opacity:.7;margin:6px 0;word-break:break-all">${E(Auth.email)}</small><button type="button" class="btn s" onclick="doLogout()">ออกจากระบบ</button>${AG.map(([g,it,fold])=>{const ln=it.map(([k,t])=>{const on=sec===k;return `<a href="#/admin/${k}" class="${on?'on':''}"${on?' aria-current="page"':''}>${t}</a>`}).join('');return fold?`<details class="agd"${FQN.open||it.some(x=>x[0]===sec)?' open':''} ontoggle="FQN.open=this.open"><summary class="ag">${g}</summary>${ln}</details>`:`<div class="ag">${g}</div>${ln}`}).join('')}</aside>`}
 function sbt(){sbc=!sbc;render()}
 function admin(parts){if(!Auth.canAccessAdmin())return loginView();const sec=parts[0]||'dash';if(sec!=='home')WC.hm=null;let main;
- if(sec==='dash')main=dashboard();else if(sec==='pages'&&parts[1]==='edit')main=pageEditor(parts[2]);else if(sec==='pages')main=pagesAdmin();else if(sec==='home')main=homeAdmin();else if(sec==='menu')main=menuAdmin();else if(sec==='events'&&parts[1]==='edit')main=eventEditor(parts[2]);else if(sec==='events')main=eventsAdmin();else if(sec==='campus'&&parts[1]==='edit')main=cmpEditor(parts[2]);else if(sec==='campus')main=campusAdmin();else if(FQE[sec])main=parts[1]==='edit'?fqEditor(sec,parts[2]):fqAdmin(sec);else if(sec==='settings')main=settingsAdmin();else main='<p>ไม่พบเมนู</p>';
+ if(sec==='dash')main=dashboard();else if(sec==='pages'&&parts[1]==='edit')main=pageEditor(parts[2]);else if(sec==='pages')main=pagesAdmin();else if(sec==='home')main=homeAdmin();else if(sec==='menu')main=menuAdmin();else if(sec==='events'&&parts[1]==='edit')main=eventEditor(parts[2]);else if(sec==='events')main=eventsAdmin();else if(sec==='campus'&&parts[1]==='edit')main=cmpEditor(parts[2]);else if(sec==='campus')main=campusAdmin();else if(FQE[sec])main=parts[1]==='edit'?fqEditor(sec,parts[2]):fqAdmin(sec);else if(sec==='typo')main=typoAdmin();else if(sec==='settings')main=settingsAdmin();else main='<p>ไม่พบเมนู</p>';
  return `<div class="adm${sbc?' c':''}">${adminNav(sec)}<main><button class="btn s" onclick="sbt()" aria-expanded="${!sbc}" aria-label="ย่อหรือขยายเมนู">${ic('menu')} เมนู</button>${toast?`<div class="msg ${toast.ok?'ok':'er'}">${E(toast.t)}</div>`:''}${main}</main></div>`}
 const dbBanner=()=>`<div class="msg ${DBH&&CW!==false?'ok':'er'}">${DBH?(CW===false?'เชื่อมต่อฐานข้อมูลแล้ว แต่บัญชีนี้ไม่มีสิทธิ์เขียนข้อมูล (ดูได้อย่างเดียว) ต้องเป็นเจ้าของหรือผู้แก้ไข':'เชื่อมต่อ Supabase แล้ว บันทึกลงฐานข้อมูลจริง (เฉพาะทีมงานที่ได้รับอนุญาต)'):dbOff()}</div>`;
 /* ===== Admin: dashboard ===== */
@@ -361,25 +361,152 @@ function fqMatchF(f,D){const {Ms,Ps}=fqInfo(f,D);if(FS.g&&f.groupId!==FS.g)retur
  const q=FS.q;if(!q)return {hits:[]};const hay=x=>[x.nameTh,x.nameEn,x.abbr,x.degree].join(' ').toLowerCase();if(hay(f).includes(q))return {hits:[]};
  const hits=Ms.filter(m=>hay(m).includes(q)).map(m=>m.nameTh).concat(Ps.filter(p=>hay(p).includes(q)).map(p=>p.nameTh));return hits.length?{hits}:null}
 function fqListHtml(D){let n=0;const body=D.G.map(g=>{const cs=D.F.filter(f=>f.groupId===g.id).map(f=>({f,m:fqMatchF(f,D)})).filter(x=>x.m);if(!cs.length)return '';n+=cs.length;
- return `<section class="fqg"><h2>${E(g.name)}</h2>${g.desc?`<p class="pl">${E(g.desc)}</p>`:''}<div class="grid">${cs.map(({f,m})=>{const {Ms,Ps}=fqInfo(f,D),im=okU(f.cover)?f.cover:okU(f.logo)?f.logo:'';
-  return `<a class="card" href="#/faculty/${E(f.id)}">${im?`<img src="${E(im)}" alt="" loading="lazy">`:''}<div class="p"><h3>${E(f.nameTh)}</h3>${f.nameEn?`<p class="evm">${E(f.nameEn)}</p>`:''}${f.abbr?`<span class="tag">${E(f.abbr)}</span>`:''}${f.brief?`<p class="pl fqbr">${E(f.brief)}</p>`:''}<p class="evm">${Ms.length} สาขาวิชา · ${Ps.length} หลักสูตร</p>${m.hits.length?`<p class="evm">ตรงกับ: ${m.hits.slice(0,3).map(E).join(', ')}${m.hits.length>3?' …':''}</p>`:''}</div></a>`}).join('')}</div></section>`}).join('');
+ return `<section class="fqg"><h2>${E(g.name)}</h2>${g.desc?`<p class="pl">${E(g.desc)}</p>`:''}<div class="fcg">${cs.map(({f,m})=>{const {Ms,Ps}=fqInfo(f,D),cv=okU(f.cover),im=cv?f.cover:okU(f.logo)?f.logo:'',cnt=[Ms.length?Ms.length+' สาขาวิชา':'',Ps.length?Ps.length+' หลักสูตร':''].filter(Boolean).join(' · ');
+  return `<a class="fcd" href="#/faculty/${E(f.id)}"><div class="fcm${im?(cv?'':' lg'):' fcp'}"${im?'':' aria-hidden="true"'}>${im?`<img src="${E(im)}" alt="" loading="lazy">`:kitMark(30)}</div><div class="fcb"><h3>${E(f.nameTh)}</h3>${f.nameEn?`<p class="fcen">${E(f.nameEn)}</p>`:''}${f.brief?`<p class="pl fqbr">${E(f.brief)}</p>`:''}${cnt?`<p class="fcn">${cnt}</p>`:''}${m.hits.length?`<p class="fcn">ตรงกับ: ${m.hits.slice(0,3).map(E).join(', ')}${m.hits.length>3?' …':''}</p>`:''}<span class="fcgo">ดูรายละเอียด</span></div></a>`}).join('')}</div></section>`}).join('');
  return `<p class="evm" id="fqn" aria-live="polite">${n?'พบ '+n+' คณะ/วิทยาลัย':''}</p>${n?body:'<div class="empty-ev"><b>ไม่พบข้อมูลที่ตรงกับการค้นหา</b><br>ลองเปลี่ยนคำค้นหาหรือตัวกรอง</div>'}`}
 function facView(){if(FS.key!==location.hash){FS.key=location.hash;FS.q='';FS.g='';FS.lv=''}
  const D=fqPub();if(!D.F.length)return `<div class="fq"><div class="empty-ev"><b>ยังไม่มีข้อมูลคณะและวิทยาลัย</b><br>${Auth.canAccessAdmin()?'<a href="#/admin/faculties">เพิ่มข้อมูลที่หลังบ้าน</a>':'กรุณากลับมาใหม่ภายหลัง'}</div></div>`;
  const gs=D.G.filter(g=>D.F.some(f=>f.groupId===g.id)),lvs=FQ_LV.filter(l=>D.M.some(m=>(m.levels||[]).includes(l[0]))||D.P.some(p=>p.level===l[0])),chip=(k,v,t)=>`<button type="button" class="cmc fqc${FS[k]===v?' on':''}" data-k="${k}" data-v="${E(v)}" onclick="fqSet('${k}','${E(v)}')">${E(t)}</button>`;
- return `<div class="fq"><div class="cmt"><input id="fqq" type="search" placeholder="ค้นหาชื่อคณะ สาขาวิชา หรือหลักสูตร" value="${E(FS.q)}" oninput="fqFilter()" aria-label="ค้นหาชื่อคณะ สาขาวิชา หรือหลักสูตร"></div>
+ return `<div class="fq ty" style="${tyStyle(tyGet(null))}"><div class="cmt"><input id="fqq" type="search" placeholder="ค้นหาชื่อคณะ สาขาวิชา หรือหลักสูตร" value="${E(FS.q)}" oninput="fqFilter()" aria-label="ค้นหาชื่อคณะ สาขาวิชา หรือหลักสูตร"></div>
 <div class="cmcs" role="group" aria-label="กรองตามกลุ่มคณะ">${chip('g','','ทุกกลุ่มคณะ')}${gs.map(g=>chip('g',g.id,g.name)).join('')}</div>${lvs.length?`<div class="cmcs" role="group" aria-label="กรองตามระดับการศึกษา" style="margin-top:8px">${chip('lv','','ทุกระดับการศึกษา')}${lvs.map(l=>chip('lv',l[0],l[1])).join('')}</div>`:''}<div id="fql">${fqListHtml(D)}</div></div>`}
 function fqRefresh(){const l=$('fql');if(l)l.innerHTML=fqListHtml(fqPub());document.querySelectorAll('.fqc').forEach(b=>b.classList.toggle('on',FS[b.dataset.k]===b.dataset.v))}
 function fqFilter(){const i=$('fqq');FS.q=i?i.value.trim().toLowerCase():'';fqRefresh()}
 function fqSet(k,v){FS[k]=FS[k]===v&&v!==''?'':v;fqRefresh()}
 function facDetail(id){const D=fqPub(),f=D.F.find(x=>x.id===id);
- if(!f)return shell('<div class="w sec"><h1>ไม่พบคณะหรือวิทยาลัยนี้</h1><p>อาจยังไม่เผยแพร่หรือถูกลบแล้ว</p><p><a class="bk" href="#/">← กลับหน้าแรก</a></p></div>');
- const lp=getPages().find(p=>p.status==='published'&&(p.sections||[]).some(s=>s.type==='faculties')),back=lp?'#/p/'+lp.slug:'#/',g=D.G.find(x=>x.id===f.groupId),fl=fqFlower(f),hasFl=fl.img||fl.nameTh||fl.nameEn||fl.meaning,{Ms}=fqInfo(f,D),blk=(t,v)=>v?`<h2>${t}</h2><p class="pl">${E(v)}</p>`:'';
- const prog=p=>`<details class="fqp"><summary><b>${E(p.nameTh)}</b>${p.nameEn?` <small>${E(p.nameEn)}</small>`:''} <span class="tag">${E(fqLv(p.level))}</span><span class="tag">${p.open==='open'?'เปิดรับสมัคร':'ปิดรับสมัคร'}</span></summary><dl class="cmdl">${[['ชื่อปริญญา',p.degree],['ระยะเวลาศึกษา',p.duration]].map(([l,v])=>v?`<dt>${l}</dt><dd>${E(v)}</dd>`:'').join('')}</dl>${blk('รายละเอียดหลักสูตร',p.desc)}${blk('คุณสมบัติผู้สมัคร',p.requirements)}${blk('แนวทางประกอบอาชีพ',p.careers)}</details>`;
- return shell(`<div class="w sec fqd"><p><a class="bk" href="${E(back)}">← กลับหน้ารวมคณะและวิทยาลัย</a></p>${okU(f.cover)?`<div class="fqb"><img src="${E(f.cover)}" alt=""></div>`:''}<div class="fqh">${okU(f.logo)?`<img class="fql" src="${E(f.logo)}" alt="ตราสัญลักษณ์ ${E(f.nameTh)}">`:''}<div>${g?`<p class="evm">${E(g.name)}</p>`:''}<h1>${E(f.nameTh)}</h1>${f.nameEn?`<p class="evm">${E(f.nameEn)}</p>`:''}${f.abbr?`<span class="tag">${E(f.abbr)}</span>`:''}</div></div>${blk('เกี่ยวกับคณะ',f.about||f.brief)}${blk('ข้อมูลการรับสมัคร',f.admission)}${blk('ช่องทางติดต่อ',f.contact)}
-${hasFl?`<h2>ดอกไม้ประจำคณะ</h2><div class="fqfl">${fl.img?`<img src="${E(fl.img)}" alt="${E(fl.nameTh||'ดอกไม้ประจำคณะ')}">`:''}<div>${fl.nameTh?`<h3>${E(fl.nameTh)}</h3>`:''}${fl.nameEn?`<p class="evm">${E(fl.nameEn)}</p>`:''}${fl.meaning?`<p class="pl">${E(fl.meaning)}</p>`:''}</div></div>`:''}
-<h2>สาขาวิชาและหลักสูตร</h2>${Ms.length?Ms.map(m=>{const ps=D.P.filter(p=>p.majorId===m.id);return `<section class="fqm"><h3>${E(m.nameTh)}</h3>${m.nameEn?`<p class="evm">${E(m.nameEn)}</p>`:''}<p>${(m.levels||[]).map(l=>`<span class="tag">${E(fqLv(l))}</span>`).join('')}</p>${m.desc?`<p class="pl">${E(m.desc)}</p>`:''}${ps.length?ps.map(prog).join(''):'<p class="evm">ยังไม่มีข้อมูลหลักสูตร</p>'}</section>`}).join(''):'<div class="empty-ev">ยังไม่มีข้อมูลสาขาวิชาและหลักสูตร</div>'}</div>`)}
+ if(!f)return ('<div class="w sec"><h1>ไม่พบคณะหรือวิทยาลัยนี้</h1><p>อาจยังไม่เผยแพร่หรือถูกลบแล้ว</p><p><a class="bk" href="#/">← กลับหน้าแรก</a></p></div>');
+ const lp=getPages().find(p=>p.status==='published'&&(p.sections||[]).some(s=>s.type==='faculties')),back=lp?'#/p/'+lp.slug:'#/',g=D.G.find(x=>x.id===f.groupId),fl=fqFlower(f),hasFl=fl.img||fl.nameTh||fl.nameEn||fl.meaning,{Ms}=fqInfo(f,D),blk=(t,v)=>v?`<section class="fqs"><h2>${t}</h2><p class="pl">${E(v)}</p></section>`:'';
+ const prog=p=>`<a class="fqpr" href="#/program/${E(p.id)}"><span class="fqpn"><b>${E(p.nameTh)}</b>${p.nameEn?`<small>${E(p.nameEn)}</small>`:''}</span><span class="fqpt"><span class="tag">${E(fqLv(p.level))}</span><span class="tag">${p.open==='open'?'เปิดรับสมัคร':'ปิดรับสมัคร'}</span></span><span class="fqpm">ดูรายละเอียด →</span></a>`;
+ return (`<div class="w sec fqd ty" style="${tyStyle(tyFac(f))}"><p><a class="bk" href="${E(back)}">← กลับหน้ารวมคณะและวิทยาลัย</a></p>${okU(f.cover)?`<div class="fqb"><img src="${E(f.cover)}" alt=""></div>`:''}<div class="fqh">${okU(f.logo)?`<img class="fql" src="${E(f.logo)}" alt="ตราสัญลักษณ์ ${E(f.nameTh)}">`:''}<div>${g?`<p class="evm">${E(g.name)}</p>`:''}<h1>${E(f.nameTh)}</h1>${f.nameEn?`<p class="evm">${E(f.nameEn)}</p>`:''}${f.abbr?`<span class="tag">${E(f.abbr)}</span>`:''}</div></div>${blk('เกี่ยวกับคณะ',f.about||f.brief)}${blk('ข้อมูลการรับสมัคร',f.admission)}${blk('ช่องทางติดต่อ',f.contact)}${fqBlocksHtml(f.blocks)}
+${hasFl?`<section class="fqs"><h2>ดอกไม้ประจำคณะ</h2><div class="fqfl">${fl.img?`<img src="${E(fl.img)}" alt="${E(fl.nameTh||'ดอกไม้ประจำคณะ')}">`:''}<div>${fl.nameTh?`<h3>${E(fl.nameTh)}</h3>`:''}${fl.nameEn?`<p class="evm">${E(fl.nameEn)}</p>`:''}${fl.meaning?`<p class="pl">${E(fl.meaning)}</p>`:''}</div></div></section>`:''}
+<section class="fqs"><h2>สาขาวิชาและหลักสูตร</h2>${Ms.length?Ms.map(m=>{const ps=D.P.filter(p=>p.majorId===m.id);return `<section class="fqm"><h3>${E(m.nameTh)}</h3>${m.nameEn?`<p class="evm">${E(m.nameEn)}</p>`:''}<p>${(m.levels||[]).map(l=>`<span class="tag">${E(fqLv(l))}</span>`).join('')}</p>${m.desc?`<p class="pl">${E(m.desc)}</p>`:''}${ps.length?`<div class="fqpl">${ps.map(prog).join('')}</div>`:'<p class="evm">ยังไม่มีข้อมูลหลักสูตร</p>'}</section>`}).join(''):'<div class="empty-ev">ยังไม่มีข้อมูลสาขาวิชาและหลักสูตร</div>'}</section></div>`)}
 PUB.faculty=facDetail;
+
+/* ===== ตัวอักษร (Typography): ค่าส่วนกลางใน settings.typo และค่าเฉพาะคณะใน faculties[].typo ===== */
+const TY_DEF={h1:40,h2:28,h3:21,h4:17,hw:700,hb:.9,ha:.5,b:16,bw:400,lh:1.7,pg:12,li:6};
+const TY_R={h1:[24,72,1],h2:[18,48,1],h3:[16,36,1],h4:[14,28,1],hw:[400,700,1],hb:[0,4,.1],ha:[0,3,.1],b:[13,24,1],bw:[400,600,1],lh:[1.2,2.4,.05],pg:[0,40,1],li:[0,24,1]};
+const TY_U={h1:'px',h2:'px',h3:'px',h4:'px',hw:'',hb:'em',ha:'em',b:'px',bw:'',lh:'',pg:'px',li:'px'};
+const TY_L={h1:'ขนาดชื่อคณะ/วิทยาลัย/หลักสูตร (px)',h2:'ขนาดหัวข้อหลัก (px)',h3:'ขนาดหัวข้อรอง (px)',h4:'ขนาดหัวข้อย่อย (px)',hw:'น้ำหนักตัวอักษรหัวข้อ',hb:'ระยะห่างก่อนหัวข้อ (em)',ha:'ระยะห่างหลังหัวข้อ (em)',b:'ขนาดข้อความปกติ (px)',bw:'น้ำหนักตัวอักษรข้อความ',lh:'ความสูงของบรรทัด (Line Height)',pg:'ระยะห่างระหว่างย่อหน้า (px)',li:'ระยะห่างระหว่างรายการ (px)'};
+const TY_W={hw:[[400,'ปกติ (400)'],[600,'ค่อนข้างหนา (600)'],[700,'หนา (700)']],bw:[[400,'ปกติ (400)'],[600,'ค่อนข้างหนา (600)']]};
+const tyNum=(v,k)=>{const r=TY_R[k],n=parseFloat(v);return Number.isFinite(n)?Math.min(r[1],Math.max(r[0],n)):TY_DEF[k]};
+const tyGet=over=>{const g=getSet().typo||{},o={};Object.keys(TY_DEF).forEach(k=>{const a=over&&over[k]!=null&&over[k]!==''?over[k]:g[k];o[k]=tyNum(a!=null&&a!==''?a:TY_DEF[k],k)});return o};
+const tyStyle=t=>Object.keys(TY_DEF).map(k=>'--ty-'+k+':'+tyNum(t[k],k)+TY_U[k]).join(';');
+const tyFac=f=>tyGet(f&&f.typo&&f.typo.on?f.typo:null);
+function tyInputs(pre,t){const row=k=>{const r=TY_R[k];return `<div><label for="${pre}${k}">${TY_L[k]}</label>${TY_W[k]?`<select id="${pre}${k}" name="${pre}${k}" onchange="tyPrev('${pre}')">${TY_W[k].map(([v,x])=>`<option value="${v}"${+t[k]===v?' selected':''}>${x}</option>`).join('')}</select>`:`<input id="${pre}${k}" name="${pre}${k}" type="number" inputmode="decimal" min="${r[0]}" max="${r[1]}" step="${r[2]}" value="${t[k]}" oninput="tyPrev('${pre}')">`}</div>`};
+ return `<h3>หัวข้อ (Heading)</h3><div class="g2">${['h1','h2','h3','h4','hw','hb','ha'].map(row).join('')}</div><h3>ข้อความ (Body Text)</h3><div class="g2">${['b','bw','lh','pg','li'].map(row).join('')}</div>
+<h3>ตัวอย่างก่อนบันทึก</h3><div id="pv_${pre}" class="ty typv" style="${tyStyle(t)}"><h1>ชื่อคณะหรือหลักสูตร</h1><h2>หัวข้อหลัก</h2><p>ตัวอย่างข้อความอธิบายปกติ ใช้ดูขนาดตัวอักษร ความสูงบรรทัด และระยะห่างระหว่างย่อหน้า</p><p>ย่อหน้าที่สอง สำหรับดูระยะห่างระหว่างย่อหน้า</p><h3>หัวข้อรอง</h3><ul><li>รายการที่หนึ่ง</li><li>รายการที่สอง</li></ul><h4>หัวข้อย่อย</h4><p>ข้อความใต้หัวข้อย่อย</p></div>`}
+function tyRead(pre,d){const o={};Object.keys(TY_DEF).forEach(k=>{o[k]=tyNum(d.get(pre+k),k)});return o}
+function tyPrev(pre){const f=$('af');if(!f)return;const el=$('pv_'+pre);if(el)el.style.cssText=tyStyle(tyRead(pre,new FormData(f)))}
+function tyReset(pre){Object.keys(TY_DEF).forEach(k=>{const el=$(pre+k);if(el)el.value=TY_DEF[k]});tyPrev(pre)}
+function typoAdmin(){const t=tyGet(null);return `<h1>ตั้งค่าตัวอักษร</h1><p>ค่ามาตรฐานของทั้งเว็บไซต์สำหรับหน้าคณะ วิทยาลัย และหลักสูตร ผู้เข้าชมเห็นผลทันทีหลังบันทึก หากต้องการปรับเฉพาะคณะ ให้ไปที่หน้าแก้ไขคณะนั้น</p>${dbBanner()}<form id="af" onsubmit="return false">${tyInputs('ty_',t)}<p><button type="button" class="btn b" onclick="tySave()">บันทึก</button> <button type="button" class="btn" onclick="tyReset('ty_')">คืนค่าเริ่มต้น</button></p><p><small>กดคืนค่าเริ่มต้นแล้วต้องกดบันทึกอีกครั้งจึงจะมีผลกับเว็บไซต์</small></p></form>`}
+async function tySave(){const f=$('af');if(!f)return;if(!DBH)return say(dbOff(),false);const t=tyRead('ty_',new FormData(f));try{await putDoc('settings',Object.assign({},getSH('settings')||{},{typo:t}));say('บันทึกการตั้งค่าตัวอักษรเรียบร้อย ผู้เข้าชมเห็นทันที')}catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
+function fqTypoEd(it){const on=!!(it.typo&&it.typo.on);return `<fieldset class="fqfs"><legend>ตัวอักษรเฉพาะคณะนี้ (ไม่บังคับ)</legend><input type="hidden" name="tf_mark" value="1"><label style="display:block"><input type="checkbox" id="tf_on" name="tf_on" value="1"${on?' checked':''} onchange="tyTog()" style="width:auto"> ใช้การตั้งค่าตัวอักษรเฉพาะคณะนี้ (ไม่เลือก = ใช้ค่ามาตรฐานของเว็บไซต์)</label>${on?tyInputs('tf_',tyGet(it.typo))+'<p><button type="button" class="btn s" onclick="tyReset(\'tf_\')">คืนค่าเริ่มต้น</button></p>':''}</fieldset>`}
+function tyTog(){const it=fqSync(WC.fqEnt);if(!it)return;const c=$('tf_on');it.typo=c&&c.checked?Object.assign({on:true},tyGet(null)):null;render()}
+
+/* ===== ตัวช่วยตัวแก้ไข: ลำดับ รายการ บล็อกเนื้อหา แผนการศึกษา ===== */
+const arrMv=(a,i,d)=>{const j=i+d;if(i<0||j<0||j>=a.length)return false;const x=a[i];a[i]=a[j];a[j]=x;return true};
+function fqMig(it){const sp=s=>String(s||'').split(/\n+/).map(x=>x.replace(/^\s*(?:[-•·]|\d+[.)])\s*/,'').trim()).filter(Boolean);
+ if(!Array.isArray(it.blocks))it.blocks=[];
+ if(WC.fqEnt==='programs'){if(!Array.isArray(it.plan))it.plan=[];if(!Array.isArray(it.reqList))it.reqList=[];if(!Array.isArray(it.careerList))it.careerList=[];
+  if(!it.reqList.length&&it.requirements){it.reqList=sp(it.requirements);it.requirements=''}
+  if(!it.careerList.length&&it.careers){it.careerList=sp(it.careers);it.careers=''}}}
+const fqRe=()=>{fqSync(WC.fqEnt);return WC.fq};
+/* รายการแบบเพิ่ม/ลบ/เรียง (คุณสมบัติผู้สมัคร, แนวทางประกอบอาชีพ) */
+function fqLst(k,l,it){const a=it[k]||[];return `<fieldset class="fqfs"><legend>${l}</legend>${a.length?a.map((v,i)=>`<div class="fqlr"><input name="ls_${k}_${i}" value="${E(v)}" aria-label="${l} ข้อที่ ${i+1}"><button type="button" class="btn s"${i?'':' disabled'} onclick="fqLMv('${k}',${i},-1)" aria-label="เลื่อนขึ้น">ขึ้น</button><button type="button" class="btn s"${i<a.length-1?'':' disabled'} onclick="fqLMv('${k}',${i},1)" aria-label="เลื่อนลง">ลง</button><button type="button" class="btn s c" onclick="fqLDel('${k}',${i})" aria-label="ลบข้อนี้">ลบ</button></div>`).join(''):'<p><small>ยังไม่มีรายการ</small></p>'}<p><button type="button" class="btn s" onclick="fqLAdd('${k}')">+ เพิ่มรายการ</button></p></fieldset>`}
+function fqLAdd(k){const it=fqRe();if(!it)return;(it[k]=it[k]||[]).push('');render()}
+function fqLDel(k,i){const it=fqRe();if(!it)return;it[k].splice(i,1);render()}
+function fqLMv(k,i,d){const it=fqRe();if(!it)return;arrMv(it[k],i,d);render()}
+/* บล็อกเนื้อหา */
+const BK=[['heading','หัวข้อ'],['text','ข้อความ'],['image','รูปภาพพร้อมคำบรรยาย'],['list','รายการ'],['divider','เส้นแบ่ง'],['group','กลุ่มหัวข้อและรายละเอียด']];
+const bkL=t=>(BK.find(x=>x[0]===t)||['',''])[1];
+function fqBlockEd(b,i,n,it){const nm=s=>'bk_'+b.id+'_'+s;let body='';
+ if(b.type==='heading')body=`<label for="${nm('lv')}">ระดับหัวข้อ</label><select id="${nm('lv')}" name="${nm('lv')}">${[['2','หัวข้อหลัก'],['3','หัวข้อรอง'],['4','หัวข้อย่อย']].map(([v,x])=>`<option value="${v}"${String(b.level||'2')===v?' selected':''}>${x}</option>`).join('')}</select><label for="${nm('tx')}">ข้อความหัวข้อ</label><input id="${nm('tx')}" name="${nm('tx')}" value="${E(b.text)}">`;
+ else if(b.type==='text')body=`<label for="${nm('tx')}">ข้อความ</label><textarea id="${nm('tx')}" name="${nm('tx')}" rows="5">${E(b.text)}</textarea>`;
+ else if(b.type==='image')body=fqImg('b:'+b.id,'รูปภาพ',it,nm('url'))+`<label for="${nm('cp')}">คำบรรยายภาพ</label><input id="${nm('cp')}" name="${nm('cp')}" value="${E(b.caption)}">`;
+ else if(b.type==='list')body=`<label for="${nm('st')}">รูปแบบรายการ</label><select id="${nm('st')}" name="${nm('st')}"><option value="bullet"${b.style==='number'?'':' selected'}>สัญลักษณ์หัวข้อ (Bullet)</option><option value="number"${b.style==='number'?' selected':''}>ลำดับเลข</option></select><label for="${nm('it')}">รายการ (หนึ่งบรรทัดต่อหนึ่งข้อ)</label><textarea id="${nm('it')}" name="${nm('it')}" rows="5">${E((b.items||[]).join('\n'))}</textarea>`;
+ else if(b.type==='group')body=`<label for="${nm('ti')}">หัวข้อ</label><input id="${nm('ti')}" name="${nm('ti')}" value="${E(b.title)}"><label for="${nm('tx')}">รายละเอียด</label><textarea id="${nm('tx')}" name="${nm('tx')}" rows="4">${E(b.text)}</textarea>`;
+ else body='<p><small>เส้นแบ่งส่วนเนื้อหา ไม่มีช่องกรอกเพิ่มเติม</small></p>';
+ return `<div class="fqcr"><p><b>${i+1}. ${bkL(b.type)}</b> <button type="button" class="btn s"${i?'':' disabled'} onclick="fqBMv('${b.id}',-1)">ขึ้น</button> <button type="button" class="btn s"${i<n-1?'':' disabled'} onclick="fqBMv('${b.id}',1)">ลง</button> <button type="button" class="btn s c" onclick="fqBDel('${b.id}')">ลบ</button></p>${body}</div>`}
+function fqBlocks(it){const bs=it.blocks||[];return `<fieldset class="fqfs"><legend>เนื้อหาเพิ่มเติม (จัดเป็นส่วน ๆ เพิ่ม ลบ และเรียงลำดับได้)</legend>${bs.length?bs.map((b,i)=>fqBlockEd(b,i,bs.length,it)).join(''):'<p><small>ยังไม่มีส่วนเนื้อหาเพิ่มเติม</small></p>'}<p>${BK.map(([k,l])=>`<button type="button" class="btn s" onclick="fqBAdd('${k}')">+ ${l}</button>`).join(' ')}</p></fieldset>`}
+function fqBAdd(t){const it=fqRe();if(!it)return;(it.blocks=it.blocks||[]).push({id:mkId('bk'),type:t,level:'2',text:'',url:'',caption:'',style:'bullet',items:[],title:''});render()}
+function fqBDel(id){const it=fqRe();if(!it)return;const P=fqPend();delete P.files['b:'+id];it.blocks=(it.blocks||[]).filter(b=>b.id!==id);render()}
+function fqBMv(id,d){const it=fqRe();if(!it)return;arrMv(it.blocks,it.blocks.findIndex(b=>b.id===id),d);render()}
+/* แผนการศึกษา: ชั้นปี → ภาคการศึกษา → รายวิชา */
+const fqIsOpen=(id,i)=>WC.fqo&&id in WC.fqo?WC.fqo[id]:i===0;
+function fqTg(id,o){(WC.fqo=WC.fqo||{})[id]=o}
+const fqNewCourse=()=>({id:mkId('cs'),code:'',name:'',credits:'',type:'required',desc:''});
+const fqNewTerm=n=>({id:mkId('tm'),name:n||'',courses:[]});
+function fqPlan(it){const pl=it.plan||[],mv=(fn,a,b,i,n)=>`<button type="button" class="btn s"${i?'':' disabled'} onclick="${fn}(${a}${b?','+b:''},-1)">ขึ้น</button> <button type="button" class="btn s"${i<n-1?'':' disabled'} onclick="${fn}(${a}${b?','+b:''},1)">ลง</button>`;
+ return `<fieldset class="fqfs"><legend>แผนการศึกษา</legend><p><small>เพิ่มชั้นปีตามระยะเวลาของหลักสูตร (2 ปี 3 ปี 4 ปี หรืออื่น ๆ) ภายในแต่ละชั้นปีเพิ่มภาคการศึกษาและรายวิชาได้ ปล่อยชื่อภาคการศึกษาว่างได้หากไม่แบ่งภาค ยังกรอกรายวิชาไม่ครบทุกชั้นปีได้</small></p>${pl.length?pl.map((y,yi)=>{const nc=(y.terms||[]).reduce((s,t)=>s+(t.courses||[]).length,0);
+ return `<details class="fqy"${fqIsOpen(y.id,yi)?' open':''} ontoggle="fqTg('${y.id}',this.open)"><summary><b>${E(y.name||'ชั้นปีที่ '+(yi+1))}</b> <small>${(y.terms||[]).length} ภาคการศึกษา · ${nc} รายวิชา</small></summary>
+<label for="y_${y.id}_name">ชื่อชั้นปี</label><input id="y_${y.id}_name" name="y_${y.id}_name" value="${E(y.name)}" placeholder="เช่น ชั้นปีที่ ${yi+1}"><label for="y_${y.id}_note">หมายเหตุของชั้นปี</label><textarea id="y_${y.id}_note" name="y_${y.id}_note" rows="2">${E(y.note)}</textarea>
+<p>${mv('fqYMv',`'${y.id}'`,'',yi,pl.length)} <button type="button" class="btn s c" onclick="fqYDel('${y.id}')">ลบชั้นปีนี้</button></p>
+${(y.terms||[]).map((t,ti)=>`<div class="fqt"><label for="t_${t.id}_name">ชื่อภาคการศึกษา (ว่าง = ไม่แบ่งภาค)</label><input id="t_${t.id}_name" name="t_${t.id}_name" value="${E(t.name)}" placeholder="เช่น ภาคการศึกษาที่ ${ti+1}">
+<p>${mv('fqTMv',`'${y.id}'`,`'${t.id}'`,ti,y.terms.length)} <button type="button" class="btn s c" onclick="fqTDel('${y.id}','${t.id}')">ลบภาคการศึกษานี้</button></p>
+${(t.courses||[]).map((c,ci)=>`<div class="fqcr"><div class="g3"><div><label for="c_${c.id}_code">รหัสวิชา</label><input id="c_${c.id}_code" name="c_${c.id}_code" value="${E(c.code)}"></div><div><label for="c_${c.id}_cr">หน่วยกิต</label><input id="c_${c.id}_cr" name="c_${c.id}_cr" value="${E(c.credits)}" placeholder="เช่น 3 หรือ 3(3-0-6)"></div><div><label for="c_${c.id}_ty">ประเภทวิชา</label><select id="c_${c.id}_ty" name="c_${c.id}_ty"><option value="required"${c.type==='elective'?'':' selected'}>วิชาบังคับ</option><option value="elective"${c.type==='elective'?' selected':''}>วิชาเลือก</option></select></div></div><label for="c_${c.id}_name">ชื่อวิชา *</label><input id="c_${c.id}_name" name="c_${c.id}_name" value="${E(c.name)}"><label for="c_${c.id}_desc">คำอธิบายรายวิชา</label><textarea id="c_${c.id}_desc" name="c_${c.id}_desc" rows="3">${E(c.desc)}</textarea>
+<p>${mv('fqCMv',`'${y.id}','${t.id}'`,'',ci,t.courses.length).replace(/fqCMv\(('[^']*','[^']*'),/g,"fqCMv($1,'"+c.id+"',")} <button type="button" class="btn s c" onclick="fqCDel('${y.id}','${t.id}','${c.id}')">ลบรายวิชา</button></p></div>`).join('')}
+<p><button type="button" class="btn s" onclick="fqCAdd('${y.id}','${t.id}')">+ เพิ่มรายวิชา</button></p></div>`).join('')}
+<p><button type="button" class="btn s" onclick="fqTAdd('${y.id}')">+ เพิ่มภาคการศึกษา</button></p></details>`}).join(''):'<p><small>ยังไม่มีชั้นปี</small></p>'}<p><button type="button" class="btn s" onclick="fqYAdd()">+ เพิ่มชั้นปี</button></p></fieldset>`}
+const fqY=id=>(WC.fq.plan||[]).find(y=>y.id===id),fqT=(y,id)=>y&&(y.terms||[]).find(t=>t.id===id);
+function fqYAdd(){const it=fqRe();if(!it)return;it.plan=it.plan||[];const y={id:mkId('yr'),name:'ชั้นปีที่ '+(it.plan.length+1),note:'',terms:[fqNewTerm('ภาคการศึกษาที่ 1')]};it.plan.push(y);(WC.fqo=WC.fqo||{})[y.id]=true;render()}
+function fqYDel(id){const it=fqRe();if(!it)return;const y=fqY(id);if(!y)return;const n=(y.terms||[]).reduce((s,t)=>s+(t.courses||[]).length,0);if(n&&!confirm('ลบชั้นปีนี้พร้อมรายวิชา '+n+' รายการ ใช่หรือไม่'))return;it.plan=it.plan.filter(x=>x.id!==id);render()}
+function fqYMv(id,d){const it=fqRe();if(!it)return;arrMv(it.plan,it.plan.findIndex(y=>y.id===id),d);render()}
+function fqTAdd(yid){const it=fqRe();if(!it)return;const y=fqY(yid);if(!y)return;y.terms=y.terms||[];y.terms.push(fqNewTerm('ภาคการศึกษาที่ '+(y.terms.length+1)));render()}
+function fqTDel(yid,tid){const it=fqRe();if(!it)return;const y=fqY(yid),t=fqT(y,tid);if(!t)return;if((t.courses||[]).length&&!confirm('ลบภาคการศึกษานี้พร้อมรายวิชา '+t.courses.length+' รายการ ใช่หรือไม่'))return;y.terms=y.terms.filter(x=>x.id!==tid);render()}
+function fqTMv(yid,tid,d){const it=fqRe();if(!it)return;const y=fqY(yid);if(!y)return;arrMv(y.terms,y.terms.findIndex(t=>t.id===tid),d);render()}
+function fqCAdd(yid,tid){const it=fqRe();if(!it)return;const t=fqT(fqY(yid),tid);if(!t)return;(t.courses=t.courses||[]).push(fqNewCourse());render()}
+function fqCDel(yid,tid,cid){const it=fqRe();if(!it)return;const t=fqT(fqY(yid),tid);if(!t)return;t.courses=t.courses.filter(c=>c.id!==cid);render()}
+function fqCMv(yid,tid,cid,d){const it=fqRe();if(!it)return;const t=fqT(fqY(yid),tid);if(!t)return;arrMv(t.courses,t.courses.findIndex(c=>c.id===cid),d);render()}
+/* อ่านค่าจากฟอร์มกลับเข้า state (เรียกจาก fqSync) */
+function fqSyncX(ent,it,d,g){const has=n=>d.has(n);
+ if(ent==='programs')['reqList','careerList'].forEach(k=>{if(Array.isArray(it[k]))it[k]=it[k].map((v,i)=>has('ls_'+k+'_'+i)?g('ls_'+k+'_'+i):v)});
+ (it.blocks||[]).forEach(b=>{const n=s=>'bk_'+b.id+'_'+s;
+  if(has(n('lv')))b.level=['2','3','4'].includes(d.get(n('lv')))?d.get(n('lv')):'2';
+  if(has(n('tx')))b.text=g(n('tx'));if(has(n('url')))b.url=g(n('url'));if(has(n('cp')))b.caption=g(n('cp'));if(has(n('ti')))b.title=g(n('ti'));
+  if(has(n('st')))b.style=d.get(n('st'))==='number'?'number':'bullet';
+  if(has(n('it')))b.items=String(d.get(n('it'))||'').split(/\n/).map(x=>STRIP(x).trim()).filter(Boolean)});
+ if(ent==='programs')(it.plan||[]).forEach(y=>{if(has('y_'+y.id+'_name'))y.name=g('y_'+y.id+'_name');if(has('y_'+y.id+'_note'))y.note=g('y_'+y.id+'_note');
+  (y.terms||[]).forEach(t=>{if(has('t_'+t.id+'_name'))t.name=g('t_'+t.id+'_name');
+   (t.courses||[]).forEach(c=>{const n=s=>'c_'+c.id+'_'+s;if(has(n('code')))c.code=g(n('code'));if(has(n('name')))c.name=g(n('name'));if(has(n('cr')))c.credits=g(n('cr'));if(has(n('desc')))c.desc=g(n('desc'));if(has(n('ty')))c.type=d.get(n('ty'))==='elective'?'elective':'required'})})});
+ if(ent==='faculties'&&has('tf_mark'))it.typo=d.get('tf_on')&&has('tf_h1')?Object.assign({on:true},tyRead('tf_',d)):(d.get('tf_on')?it.typo:null)}
+/* ตรวจและทำความสะอาดก่อนบันทึก: คืนข้อความผิดพลาดหรือ '' */
+function fqClean(ent,it){
+ if(ent==='programs'){if(it.credits&&!/^\d{1,3}(\.\d+)?$/.test(it.credits))return 'จำนวนหน่วยกิตรวมต้องเป็นตัวเลข เช่น 132';
+  it.reqList=(it.reqList||[]).map(x=>String(x).trim()).filter(Boolean);it.careerList=(it.careerList||[]).map(x=>String(x).trim()).filter(Boolean);
+  const re=/^\d+(\.\d+)?(\s*\(\d+-\d+-\d+\))?$/;
+  for(const y of it.plan||[]){for(const t of y.terms||[]){t.courses=(t.courses||[]).filter(c=>c.code||c.name||c.credits||c.desc);for(const c of t.courses){if(!c.name)return 'รายวิชา'+(c.code?' '+c.code:'')+' ยังไม่ได้ใส่ชื่อวิชา';if(c.credits&&!re.test(c.credits))return 'หน่วยกิตของวิชา "'+c.name+'" ไม่ถูกต้อง (ใช้ เช่น 3 หรือ 3(3-0-6))'}}}
+  (it.plan||[]).forEach((y,i)=>{if(!y.name)y.name='ชั้นปีที่ '+(i+1)})}
+ return ''}
+const fqBlkOk=b=>b&&(b.type==='divider'||(b.type==='heading'&&b.text)||(b.type==='text'&&b.text)||(b.type==='image'&&b.url)||(b.type==='list'&&(b.items||[]).length)||(b.type==='group'&&(b.title||b.text)));
+
+/* ===== หน้าเว็บ: ตัวช่วยแสดงผล ===== */
+const fqUl=(a,ord)=>{const x=(a||[]).filter(Boolean);if(!x.length)return '';const t=ord?'ol':'ul';return `<${t} class="fqli">${x.map(i=>`<li>${E(i)}</li>`).join('')}</${t}>`};
+const fqSecH=(t,b)=>b?`<section class="fqs"><h2>${E(t)}</h2>${b}</section>`:'';
+const fqTx=s=>s?`<p class="pl">${E(s)}</p>`:'';
+function fqBlocksHtml(bs){return (bs||[]).map(b=>{if(!b)return '';
+ if(b.type==='heading'&&b.text){const l=({2:2,3:3,4:4})[+b.level]||2;return `<h${l}>${E(b.text)}</h${l}>`}
+ if(b.type==='text'&&b.text)return fqTx(b.text);
+ if(b.type==='image'&&okU(b.url))return `<figure class="fqfg"><img src="${E(b.url)}" alt="${E(b.caption||'')}" loading="lazy">${b.caption?`<figcaption>${E(b.caption)}</figcaption>`:''}</figure>`;
+ if(b.type==='list')return fqUl(b.items,b.style==='number');
+ if(b.type==='divider')return '<hr class="fqhr">';
+ if(b.type==='group'&&(b.title||b.text))return `<div class="fqgp">${b.title?`<h3>${E(b.title)}</h3>`:''}${fqTx(b.text)}</div>`;
+ return ''}).join('')}
+const crN=c=>{const n=parseFloat(c);return Number.isFinite(n)?n:0};
+const fqCourse=c=>`<li><span class="cc">${E(c.code)}</span><span class="cn">${E(c.name)}</span><span class="cu">${c.credits?E(c.credits)+' หน่วยกิต':''}</span><span class="tag">${c.type==='elective'?'วิชาเลือก':'วิชาบังคับ'}</span></li>`;
+function fqPlanHtml(plan){return (plan||[]).map((y,yi)=>{const ts=(y.terms||[]).map(t=>{const cs=(t.courses||[]).filter(c=>c&&(c.name||c.code));if(!cs.length&&!t.name)return '';const tot=cs.reduce((s,c)=>s+crN(c.credits),0);
+ return `<div class="fqt2">${t.name?`<h4>${E(t.name)}</h4>`:''}${cs.length?`<ul class="fqcs">${cs.map(fqCourse).join('')}</ul>${tot?`<p class="evm">รวม ${+tot.toFixed(2)} หน่วยกิต</p>`:''}`:'<p class="evm">ยังไม่มีข้อมูลรายวิชา</p>'}</div>`}).join('');
+ if(!ts&&!y.note)return '';return `<div class="fqy2"><h3>${E(y.name||'ชั้นปีที่ '+(yi+1))}</h3>${fqTx(y.note)}${ts}</div>`}).join('')}
+function fqCourseDetails(plan){const rows=[];(plan||[]).forEach(y=>(y.terms||[]).forEach(t=>(t.courses||[]).forEach(c=>{if(c&&c.name&&c.desc)rows.push(c)})));
+ return rows.map(c=>`<div class="fqgp"><h3>${c.code?E(c.code)+' ':''}${E(c.name)}</h3>${c.credits?`<p class="evm">${E(c.credits)} หน่วยกิต · ${c.type==='elective'?'วิชาเลือก':'วิชาบังคับ'}</p>`:''}${fqTx(c.desc)}</div>`).join('')}
+function progDetail(id){const D=fqPub(),p=D.P.find(x=>x.id===id);
+ if(!p)return ('<div class="w sec"><h1>ไม่พบหลักสูตรนี้</h1><p>อาจยังไม่เผยแพร่หรือถูกลบแล้ว</p><p><a class="bk" href="#/">← กลับหน้าแรก</a></p></div>');
+ const m=D.M.find(x=>x.id===p.majorId),f=m&&D.F.find(x=>x.id===m.facultyId),t=tyFac(f),req=(p.reqList||[]).filter(Boolean),car=(p.careerList||[]).filter(Boolean),
+ info=[['ระดับการศึกษา',fqLv(p.level)],['ระยะเวลาศึกษา',p.duration],['จำนวนหน่วยกิตรวม',p.credits?p.credits+' หน่วยกิต':''],['สาขาวิชา',m&&m.nameTh],['คณะ/วิทยาลัย',f&&f.nameTh],['สถานะการรับสมัคร',p.open==='open'?'เปิดรับสมัคร':'ปิดรับสมัคร']].filter(x=>x[1]),
+ so=(p.objectives?`<h3>วัตถุประสงค์ของหลักสูตร</h3>${fqTx(p.objectives)}`:'')+(p.outcomes?`<h3>ผลลัพธ์การเรียนรู้ที่คาดหวัง</h3>${fqTx(p.outcomes)}`:''),
+ sections=[fqSecH('คำอธิบายหลักสูตร',fqTx(p.desc)),fqSecH('วัตถุประสงค์และผลลัพธ์การเรียนรู้',so),fqSecH('ข้อมูลหลักสูตร',`<dl class="cmdl">${info.map(([l,v])=>`<dt>${l}</dt><dd>${E(v)}</dd>`).join('')}</dl>`),
+  fqSecH('คุณสมบัติผู้สมัคร',req.length?fqUl(req):fqTx(p.requirements)),fqSecH('แผนการศึกษา',fqPlanHtml(p.plan)),fqSecH('รายละเอียดรายวิชา',fqCourseDetails(p.plan)),
+  fqSecH('การฝึกงานหรือสหกิจศึกษา',fqTx(p.internship)),fqSecH('แนวทางประกอบอาชีพ',car.length?fqUl(car):fqTx(p.careers)),fqSecH('เงื่อนไขการสำเร็จการศึกษา',fqTx(p.graduation)),fqSecH('หมายเหตุเพิ่มเติม',fqTx(p.notes)),fqBlocksHtml(p.blocks)].join('');
+ return (`<div class="w sec fqd ty" style="${tyStyle(t)}"><p><a class="bk" href="${f?'#/faculty/'+E(f.id):'#/'}">← กลับ${f?'หน้า'+E(f.nameTh):'หน้าแรก'}</a></p><div class="fqph"><h1>${E(p.nameTh)}</h1>${p.nameEn?`<p class="evm">${E(p.nameEn)}</p>`:''}${p.degree||p.degreeEn?`<p class="fqdg">${p.degree?E(p.degree):''}${p.degree&&p.degreeEn?' · ':''}${p.degreeEn?E(p.degreeEn):''}</p>`:''}<p><span class="tag">${E(fqLv(p.level))}</span><span class="tag">${p.open==='open'?'เปิดรับสมัคร':'ปิดรับสมัคร'}</span></p></div>${sections}</div>`)}
+PUB.program=progDetail;
 
 /* ===== Admin: คณะและหลักสูตร (ตัวจัดการกลางใช้ร่วมกันทั้ง 4 ระดับ) ===== */
 const PEND={path:'',files:{}};
@@ -392,8 +519,8 @@ const FQE={
   fields:[['name','ชื่อกลุ่มคณะ','text',1],['nameEn','ชื่อภาษาอังกฤษ','text'],['desc','คำอธิบายกลุ่ม','area']],
   label:g=>g.name,sub:g=>fqF().filter(f=>f.groupId===g.id).length+' คณะ/วิทยาลัย',kids:g=>fqF().filter(f=>f.groupId===g.id),kidName:'คณะ/วิทยาลัย'},
  faculties:{one:'คณะ/วิทยาลัย',title:'จัดการคณะและวิทยาลัย',pre:'fa',get:fqF,
-  blank:()=>({groupId:AFV.group||'',nameTh:'',nameEn:'',abbr:'',brief:'',about:'',cover:'',logo:'',admission:'',contact:'',flower:null,status:'draft'}),
-  fields:[['groupId','กลุ่มคณะ','sel',1,()=>fqG().map(g=>[g.id,g.name])],['nameTh','ชื่อภาษาไทย','text',1],['nameEn','ชื่อภาษาอังกฤษ','text'],['abbr','ชื่อย่อ (ถ้ามี)','text'],['brief','คำอธิบายแบบย่อ (แสดงบนการ์ด)','area'],['about','คำแนะนำและรายละเอียดเกี่ยวกับคณะ','area8'],['cover','ภาพปกหรือแบนเนอร์','img'],['logo','ตราสัญลักษณ์หรือรูปประจำคณะ','img'],['admission','ข้อมูลการรับสมัคร','area'],['contact','ช่องทางติดต่อ','area'],['flower','','flower']],
+  blank:()=>({groupId:AFV.group||'',nameTh:'',nameEn:'',abbr:'',brief:'',about:'',cover:'',logo:'',admission:'',contact:'',flower:null,blocks:[],typo:null,status:'draft'}),
+  fields:[['groupId','กลุ่มคณะ','sel',1,()=>fqG().map(g=>[g.id,g.name])],['nameTh','ชื่อภาษาไทย','text',1],['nameEn','ชื่อภาษาอังกฤษ','text'],['abbr','ชื่อย่อ (ถ้ามี)','text'],['brief','คำอธิบายแบบย่อ (แสดงบนการ์ด)','area'],['about','คำแนะนำและรายละเอียดเกี่ยวกับคณะ','area8'],['cover','ภาพปกหรือแบนเนอร์','img'],['logo','ตราสัญลักษณ์หรือรูปประจำคณะ','img'],['admission','ข้อมูลการรับสมัคร','area'],['contact','ช่องทางติดต่อ','area'],['blocks','','blocks'],['typo','','typo'],['flower','','flower']],
   filter:f=>!AFV.group||f.groupId===AFV.group,
   label:f=>f.nameTh,sub:f=>(fqName(fqG(),f.groupId,'name')||'ไม่มีกลุ่มต้นสังกัด')+' · '+fqM().filter(m=>m.facultyId===f.id).length+' สาขาวิชา',kids:f=>fqM().filter(m=>m.facultyId===f.id),kidName:'สาขาวิชา',
   parent:()=>fqG(),pk:'groupId',pn:'กลุ่มคณะ',pl:'#/admin/fgroups'},
@@ -404,8 +531,11 @@ const FQE={
   label:m=>m.nameTh,sub:m=>(fqName(fqF(),m.facultyId)||'ไม่มีคณะต้นสังกัด')+' · '+(m.levels||[]).map(fqLv).join('/')+' · '+fqP().filter(p=>p.majorId===m.id).length+' หลักสูตร',kids:m=>fqP().filter(p=>p.majorId===m.id),kidName:'หลักสูตร',
   parent:()=>fqF(),pk:'facultyId',pn:'คณะ/วิทยาลัย',pl:'#/admin/faculties'},
  programs:{one:'หลักสูตร',title:'จัดการหลักสูตร',pre:'pg',get:fqP,
-  blank:()=>({majorId:AFV.major||'',nameTh:'',nameEn:'',degree:'',level:'bachelor',duration:'',desc:'',requirements:'',careers:'',open:'closed',status:'draft'}),
-  fields:[['majorId','สาขาวิชาต้นสังกัด','sel',1,()=>fqM().map(m=>[m.id,m.nameTh,fqName(fqF(),m.facultyId)||'(ไม่มีคณะ)'])],['nameTh','ชื่อหลักสูตรภาษาไทย','text',1],['nameEn','ชื่อหลักสูตรภาษาอังกฤษ','text'],['degree','ชื่อปริญญา (ถ้ามี)','text'],['level','ระดับการศึกษา','sel',1,()=>FQ_LV],['duration','ระยะเวลาศึกษา','text'],['desc','รายละเอียดหลักสูตร','area8'],['requirements','คุณสมบัติผู้สมัคร','area'],['careers','แนวทางประกอบอาชีพ','area'],['open','สถานะเปิดรับสมัคร','sel',0,()=>[['closed','ปิดรับสมัคร'],['open','เปิดรับสมัคร']]]],
+  blank:()=>({majorId:AFV.major||'',nameTh:'',nameEn:'',degree:'',degreeEn:'',level:'bachelor',duration:'',credits:'',desc:'',objectives:'',outcomes:'',reqList:[],plan:[],internship:'',graduation:'',careerList:[],notes:'',blocks:[],open:'closed',status:'draft'}),
+  fields:[['','ข้อมูลหลักสูตรทั่วไป','hdr'],['majorId','สาขาวิชาต้นสังกัด','sel',1,()=>fqM().map(m=>[m.id,m.nameTh,fqName(fqF(),m.facultyId)||'(ไม่มีคณะ)'])],['nameTh','ชื่อหลักสูตรภาษาไทย','text',1],['nameEn','ชื่อหลักสูตรภาษาอังกฤษ','text'],['degree','ชื่อปริญญาภาษาไทย (ถ้ามี)','text'],['degreeEn','ชื่อปริญญาภาษาอังกฤษ (ถ้ามี)','text'],['level','ระดับการศึกษา','sel',1,()=>FQ_LV],['duration','ระยะเวลาศึกษา','text'],['credits','จำนวนหน่วยกิตรวม (ถ้ามี ใส่เป็นตัวเลข)','text'],['desc','คำอธิบายหลักสูตร','area8'],['objectives','วัตถุประสงค์ของหลักสูตร','area'],['outcomes','ผลลัพธ์การเรียนรู้ที่คาดหวัง','area'],['open','สถานะเปิดรับสมัคร','sel',0,()=>[['closed','ปิดรับสมัคร'],['open','เปิดรับสมัคร']]],
+  ['','คุณสมบัติผู้สมัคร','hdr'],['reqList','รายการคุณสมบัติผู้สมัคร (เพิ่มทีละข้อ)','list'],
+  ['','แผนการศึกษาและรายวิชา','hdr'],['plan','','plan'],
+  ['','ข้อมูลเพิ่มเติม','hdr'],['internship','การฝึกงานหรือสหกิจศึกษา (ถ้ามี)','area'],['graduation','เงื่อนไขการสำเร็จการศึกษา (ถ้ามี)','area'],['careerList','แนวทางประกอบอาชีพ (เพิ่มทีละข้อ)','list'],['notes','หมายเหตุเพิ่มเติม (ถ้ามี)','area'],['blocks','','blocks']],
   filter:p=>{const m=fqM().find(x=>x.id===p.majorId);return (!AFV.faculty||(m&&m.facultyId===AFV.faculty))&&(!AFV.major||p.majorId===AFV.major)},
   label:p=>p.nameTh,sub:p=>{const m=fqM().find(x=>x.id===p.majorId);return (m?m.nameTh+' › '+(fqName(fqF(),m.facultyId)||'-'):'ไม่มีสาขาต้นสังกัด')+' · '+fqLv(p.level)+' · '+(p.open==='open'?'เปิดรับสมัคร':'ปิดรับสมัคร')},kids:()=>[],kidName:'',
   parent:()=>fqM(),pk:'majorId',pn:'สาขาวิชา',pl:'#/admin/majors'}
@@ -433,17 +563,22 @@ async function fqHideOnly(ent,id){const all=clone(FQE[ent].get()),it=all.find(x=
 async function fqDelDo(ent,id){$('md').innerHTML='';const C=FQE[ent],it=C.get().find(x=>x.id===id);if(!it)return;if(C.kids(it).length)return say('ลบไม่ได้ ยังมีรายการสังกัดอยู่',false);if(!DBH)return say(dbOff(),false);try{await putDoc(ent,C.get().filter(x=>x.id!==id));say('ลบเรียบร้อย')}catch(e){dbErr('บันทึกไม่สำเร็จ',e)}}
 /* --- ตัวแก้ไข --- */
 function fqPend(){if(PEND.path!==location.hash){PEND.path=location.hash;PEND.files={}}return PEND}
-const fqImgGet=(it,k)=>k==='flower'?(it.flower&&it.flower.img)||'':it[k]||'';
-function fqImgSet(it,k,v){if(k==='flower'){it.flower=it.flower||{};it.flower.img=v}else it[k]=v}
+const fqImgGet=(it,k)=>{if(k==='flower')return (it.flower&&it.flower.img)||'';if(k.slice(0,2)==='b:'){const b=(it.blocks||[]).find(x=>x.id===k.slice(2));return (b&&b.url)||''}return it[k]||''};
+function fqImgSet(it,k,v){if(k==='flower'){it.flower=it.flower||{};it.flower.img=v}else if(k.slice(0,2)==='b:'){const b=(it.blocks||[]).find(x=>x.id===k.slice(2));if(b)b.url=v}else it[k]=v}
 function fqImg(k,l,it,nm){const p=fqPend().files[k],v=fqImgGet(it,k),src=p?p.url:okU(v)?v:'';
  return `<label>${l}</label>${src?`<img class="fqpv" src="${E(src)}" alt="ตัวอย่างภาพ">${p?'<p><small>ภาพตัวอย่าง — ยังไม่ได้บันทึก จะอัปโหลดเมื่อกดบันทึก</small></p>':''}`:'<p><small>ยังไม่มีรูป</small></p>'}<input name="${nm}" value="${E(v)}" placeholder="ลิงก์รูป https:// (หรืออัปโหลด/เลือกจากคลังสื่อด้านล่าง)"><input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onchange="fqPick('${k}',this)"><p><button type="button" class="btn s" onclick="fqLib('${k}')">เลือกจากคลังสื่อ</button> ${src?`<button type="button" class="btn s c" onclick="fqImgClear('${k}')">ลบรูป</button>`:''}</p>`}
 function fqEditor(ent,id){const C=FQE[ent],isNew=id==='new';
- if(!WC.fq||WC.fqEnt!==ent||WC.fq.id!==(isNew?WC.fq.id:id)){const ex=isNew?null:C.get().find(x=>x.id===id);if(!isNew&&!ex)return `<p><a class="bk" href="#/admin/${ent}">← ${C.title}</a></p><h1>ไม่พบรายการ</h1>`;WC.fq=isNew?Object.assign({id:mkId(C.pre)},C.blank()):clone(ex);WC.fqNew=isNew;WC.fqEnt=ent}
+ if(!WC.fq||WC.fqEnt!==ent||WC.fq.id!==(isNew?WC.fq.id:id)){const ex=isNew?null:C.get().find(x=>x.id===id);if(!isNew&&!ex)return `<p><a class="bk" href="#/admin/${ent}">← ${C.title}</a></p><h1>ไม่พบรายการ</h1>`;WC.fq=isNew?Object.assign({id:mkId(C.pre)},C.blank()):clone(ex);WC.fqNew=isNew;WC.fqEnt=ent;fqMig(WC.fq)}
  const it=WC.fq,fi=fd=>{const [k,l,t,req,opt]=fd,nm='f_'+k,v=it[k],lb=`<label for="${nm}">${l}${req?' *':''}</label>`;
   if(t==='text')return `${lb}<input id="${nm}" name="${nm}" value="${E(v)}">`;
   if(t==='area'||t==='area8')return `${lb}<textarea id="${nm}" name="${nm}" rows="${t==='area8'?8:4}">${E(v)}</textarea>`;
   if(t==='sel'){const o=opt();let g=null,h='';o.forEach(([a,b,gr])=>{if(gr!==undefined&&gr!==g){if(g!==null)h+='</optgroup>';h+=`<optgroup label="${E(gr)}">`;g=gr}h+=`<option value="${E(a)}"${v===a?' selected':''}>${E(b)}</option>`});if(g!==null)h+='</optgroup>';return `${lb}<select id="${nm}" name="${nm}"><option value="">— เลือก —</option>${h}</select>`}
   if(t==='chk')return `<fieldset><legend>${l}</legend>${FQ_LV.map(([a,b])=>`<label style="display:inline-block;margin-right:14px"><input type="checkbox" name="${nm}" value="${a}"${(v||[]).includes(a)?' checked':''} style="width:auto"> ${b}</label>`).join('')}</fieldset>`;
+  if(t==='hdr')return `<h3 class="fqhd">${l}</h3>`;
+  if(t==='list')return fqLst(k,l,it);
+  if(t==='plan')return fqPlan(it);
+  if(t==='blocks')return fqBlocks(it);
+  if(t==='typo')return fqTypoEd(it);
   if(t==='img')return fqImg(k,l,it,nm);
   if(t==='flower'){const w=it.flower||{};return `<fieldset class="fqfs"><legend>ดอกไม้ประจำคณะ (ไม่บังคับ)</legend>${fqImg('flower','รูปดอกไม้ประจำคณะ',it,'fl_img')}<div class="g2"><div><label for="fl_nameTh">ชื่อดอกไม้ (ภาษาไทย)</label><input id="fl_nameTh" name="fl_nameTh" value="${E(w.nameTh)}"></div><div><label for="fl_nameEn">ชื่อดอกไม้ (ภาษาอังกฤษ)</label><input id="fl_nameEn" name="fl_nameEn" value="${E(w.nameEn)}"></div></div><label for="fl_meaning">ความหมายของดอกไม้</label><textarea id="fl_meaning" name="fl_meaning" rows="4">${E(w.meaning)}</textarea><p><button type="button" class="btn s c" onclick="fqFlowerClear()">ล้างข้อมูลดอกไม้</button></p></fieldset>`}
   return ''};
@@ -452,7 +587,7 @@ function fqEditor(ent,id){const C=FQE[ent],isNew=id==='new';
 function fqSync(ent){const C=FQE[ent],it=WC.fq;if(!it)return null;const d=new FormData($('af')),g=n=>STRIP(String(d.get(n)==null?'':d.get(n))).trim();
  C.fields.forEach(([k,,t])=>{const nm='f_'+k;if(t==='chk')it[k]=d.getAll(nm);else if(t!=='flower'&&d.has(nm))it[k]=g(nm)});
  if(d.has('f_status'))it.status=d.get('f_status')==='published'?'published':'draft';
- if(ent==='faculties'&&d.has('fl_nameTh')){const w=it.flower=it.flower||{};w.nameTh=g('fl_nameTh');w.nameEn=g('fl_nameEn');w.meaning=g('fl_meaning');w.img=g('fl_img')}return it}
+ if(ent==='faculties'&&d.has('fl_nameTh')){const w=it.flower=it.flower||{};w.nameTh=g('fl_nameTh');w.nameEn=g('fl_nameEn');w.meaning=g('fl_meaning');w.img=g('fl_img')}fqSyncX(ent,it,d,g);return it}
 async function mdUpload(file,dir){if(!SB||!DBH)throw {message:dbOff()};const ext=CM_MIME[file&&file.type];if(!ext)throw {message:'รองรับเฉพาะไฟล์ PNG, JPG, WebP, GIF'};if(file.size>5*1024*1024)throw {message:'ไฟล์ใหญ่เกิน 5 MB'};
  const path=dir+'/'+mkId('f')+'.'+ext,{error}=await SB.storage.from('media').upload(path,file,{contentType:file.type,cacheControl:'31536000',upsert:false});if(error)throw error;return SB.storage.from('media').getPublicUrl(path).data.publicUrl}
 function fqPick(k,inp){const f=inp.files&&inp.files[0];inp.value='';if(!f)return;const ent=WC.fqEnt;if(!CM_MIME[f.type])return say('รองรับเฉพาะไฟล์ PNG, JPG, WebP, GIF',false);if(f.size>5*1024*1024)return say('ไฟล์ใหญ่เกิน 5 MB',false);fqSync(ent);const P=fqPend();if(P.files[k]){try{URL.revokeObjectURL(P.files[k].url)}catch(e){}}P.files[k]={file:f,url:URL.createObjectURL(f)};render()}
@@ -469,10 +604,13 @@ async function fqSave(ent){const C=FQE[ent],it=fqSync(ent);if(!it)return;
  if(C.parent&&!C.parent().some(x=>x.id===it[C.pk]))return say('ต้นสังกัดที่เลือกไม่มีอยู่ในระบบ',false);
  if(ent==='majors'&&(it.levels||[]).some(l=>!FQ_LV.some(x=>x[0]===l)))return say('ระดับการศึกษาไม่ถูกต้อง',false);
  if(ent==='programs'&&!FQ_LV.some(x=>x[0]===it.level))return say('ระดับการศึกษาไม่ถูกต้อง',false);
+ {const er=fqClean(ent,it);if(er)return say(er,false)}
  if(!DBH)return say(dbOff(),false);
  const P=fqPend();
  try{for(const k of Object.keys(P.files))fqImgSet(it,k,await mdUpload(P.files[k].file,'faculties'));
   for(const k of ['cover','logo'])if(ent==='faculties'&&it[k]&&!okU(it[k]))return say('ลิงก์รูปต้องขึ้นต้นด้วย https://',false);
+  for(const b of it.blocks||[])if(b.type==='image'&&b.url&&!okU(b.url))return say('ลิงก์รูปในเนื้อหาเพิ่มเติมต้องขึ้นต้นด้วย https://',false);
+  it.blocks=(it.blocks||[]).filter(fqBlkOk);
   if(ent==='faculties'){const w=it.flower;if(w){if(w.img&&!okU(w.img))return say('ลิงก์รูปดอกไม้ต้องขึ้นต้นด้วย https://',false);if(!w.img&&!w.nameTh&&!w.nameEn&&!w.meaning)it.flower=null}}
   const arr=C.get().slice(),i=arr.findIndex(x=>x.id===it.id);if(i>=0)arr[i]=it;else arr.push(it);await putDoc(ent,arr);
   const wasNew=WC.fqNew,nid=it.id;WC={};P.files={};
@@ -514,7 +652,7 @@ function sndPrev(){sndWake();sndPlay('tick')}
  addEventListener('hashchange',()=>{if(SND.nav)sndPlay('nav')});
  setTimeout(()=>{SND.nav=true},0);
 }catch(e){}})();
-function setTitle(p){const s=getSet();let t=s.nameTh+' | '+s.nameEn+' ('+BRAND.short+')';if(p[0]==='admin')t='Admin · '+BRAND.short+' | '+s.nameTh;else if(p[0]==='faculty'){const q=fqPub().F.find(x=>x.id===p[1]);if(q)t=q.nameTh+' | '+s.nameTh}else if(p[0]==='p'){const q=getPages().find(x=>x.slug===p[1]&&x.status==='published');if(q)t=q.title+' | '+s.nameTh}document.title=t}
+function setTitle(p){const s=getSet();let t=s.nameTh+' | '+s.nameEn+' ('+BRAND.short+')';if(p[0]==='admin')t='Admin · '+BRAND.short+' | '+s.nameTh;else if(p[0]==='faculty'){const q=fqPub().F.find(x=>x.id===p[1]);if(q)t=q.nameTh+' | '+s.nameTh}else if(p[0]==='program'){const q=fqPub().P.find(x=>x.id===p[1]);if(q)t=q.nameTh+' | '+s.nameTh}else if(p[0]==='p'){const q=getPages().find(x=>x.slug===p[1]&&x.status==='published');if(q)t=q.title+' | '+s.nameTh}document.title=t}
 function render(){const h=location.hash||'#/',p=h.replace(/^#\/?/,'').split('/');if(h!==last){if(innerWidth<760)sbc=true;toast=null;WC={};last=h}
  setTitle(p);let html;try{if(p[0]==='admin')html=admin(p.slice(1));else html=shell(p[0]===''?homeView():PUB[p[0]]?PUB[p[0]](p[1]):nf())}catch(e){html='<div class="w sec"><div class="msg er">เกิดข้อผิดพลาด: '+E(e.message)+'</div></div>'}
  const y=scrollY;$('app').innerHTML=html;sndSync();cmMount();if(h===last&&!document.activeElement.matches('input,textarea'))scrollTo(0,y)}
