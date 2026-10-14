@@ -245,8 +245,16 @@ async function setSave(){const d=new FormData($('af')),o={};SETF.forEach(([k])=>
    ไม่มีตารางรายวิชากลางในระบบเดิม: รายวิชาเก็บฝังในแผนการศึกษาของแต่ละหลักสูตร (programs[].plan[].terms[].courses[])
    จึงสร้าง "ดัชนีรายวิชากลาง" จากข้อมูลเดิมโดยรวมตามรหัสวิชา (Course = รหัสวิชา, CurriculumCourse = รายการวิชาในแต่ละหลักสูตร)
    แก้ข้อมูลกลางครั้งเดียว ระบบเขียนค่าเดียวกันกลับทุกหลักสูตรที่ใช้รหัสนั้น (ไม่แตะประเภทวิชา/วิชาบังคับก่อน/การซ่อนของแต่ละหลักสูตร) */
-const CQ={q:'',fac:'',maj:'',lv:'',n:50};
-const CQ_F=['code','name','nameEn','credits','desc','descEn'];
+const CQ={q:'',fac:'',maj:'',lv:'',sc:'',n:50};
+const CQ_F=['code','name','nameEn','credits','desc','descEn','scope'];
+/* ขอบเขตการใช้วิชา (ข้อมูลกลางของวิชา เก็บใน field scope ของรายวิชา ไม่ได้หมายความว่าต้องเปิดเป็นหมู่เรียนเดียวกัน) */
+const CQ_SC=[['university','ระดับมหาวิทยาลัย'],['faculty','ระดับคณะ'],['major','ระดับสาขา']];
+const cqScLbl=v=>(CQ_SC.find(x=>x[0]===v)||[,''])[1];
+const cqScTag=v=>v&&cqScLbl(v)?` <span class="tag">${E(cqScLbl(v))}</span>`:'';
+function cqScopeErr(sc,ps){if(!sc)return '';if(!CQ_SC.some(x=>x[0]===sc))return 'ขอบเขตการใช้วิชาไม่ถูกต้อง';const mj=new Map(fqM().map(m=>[m.id,m])),fa=new Set(),ma=new Set();
+ ps.forEach(p=>{ma.add(p.majorId);const m=mj.get(p.majorId);fa.add(m?m.facultyId:'')});
+ if(sc==='faculty'&&fa.size>1)return 'ขอบเขต "ระดับคณะ" แต่วิชานี้ใช้ใน '+fa.size+' คณะ ให้เลือกขอบเขตระดับมหาวิทยาลัย หรือปรับการใช้วิชา';
+ if(sc==='major'&&ma.size>1)return 'ขอบเขต "ระดับสาขา" แต่วิชานี้ใช้ใน '+ma.size+' สาขา ให้เลือกขอบเขตระดับคณะหรือมหาวิทยาลัย หรือปรับการใช้วิชา';return ''}
 const cqNorm=c=>String(c||'').trim().replace(/\s+/g,'').toUpperCase();
 const cqRe=/^\d+(\.\d+)?(\s*\(\d+-\d+-\d+\))?$/;
 function cqIndex(src){const M=new Map(),mj=new Map(fqM().map(x=>[x.id,x])),fc=new Map(fqF().map(x=>[x.id,x]));
@@ -257,7 +265,7 @@ function cqIndex(src){const M=new Map(),mj=new Map(fqM().map(x=>[x.id,x])),fc=ne
  return M}
 function cqHay(e){return [e.code,e.name,e.nameEn,...e.uses.flatMap(u=>[u.p.nameTh,u.m&&u.m.nameTh,u.f&&u.f.nameTh,fqLv(u.p.level)])].join(' ').toLowerCase()}
 function cqFilter(){const q=CQ.q.trim().toLowerCase();
- return [...cqIndex().values()].filter(e=>(!q||cqHay(e).includes(q))&&(!CQ.fac||e.uses.some(u=>u.f&&u.f.id===CQ.fac))&&(!CQ.maj||e.uses.some(u=>u.m&&u.m.id===CQ.maj))&&(!CQ.lv||e.uses.some(u=>u.p.level===CQ.lv)))
+ return [...cqIndex().values()].filter(e=>(!q||cqHay(e).includes(q))&&(!CQ.fac||e.uses.some(u=>u.f&&u.f.id===CQ.fac))&&(!CQ.maj||e.uses.some(u=>u.m&&u.m.id===CQ.maj))&&(!CQ.lv||e.uses.some(u=>u.p.level===CQ.lv))&&(!CQ.sc||(CQ.sc==='none'?!e.scope:e.scope===CQ.sc)))
   .sort((a,b)=>a.key.localeCompare(b.key))}
 function cqSet(k,v){CQ[k]=v;if(k==='fac'&&CQ.maj&&!fqM().some(m=>m.id===CQ.maj&&m.facultyId===v))CQ.maj='';if(k!=='n')CQ.n=50;
  const a=document.activeElement,id=a&&a.id==='cqq'?a.selectionStart:null;render();if(id!=null){const n=$('cqq');if(n){n.focus();try{n.setSelectionRange(id,id)}catch(e){}}}}
@@ -269,10 +277,11 @@ function cqAdmin(){const L=cqFilter(),tot=cqIndex().size,vis=L.slice(0,CQ.n),
  <p><a class="btn" href="#/admin/courses/program">จัดรายวิชาตามหลักสูตร (4 ประเภท)</a></p><div class="g2"><div><label for="cqq">ค้นหา (รหัสวิชา ชื่อวิชาไทย/อังกฤษ คณะ สาขา)</label><input id="cqq" type="search" value="${E(CQ.q)}" oninput="cqSet('q',this.value)" placeholder="เช่น ENG101 หรือ แคลคูลัส"></div>
  <div><label for="cqlv">ระดับการศึกษา</label><select id="cqlv" onchange="cqSet('lv',this.value)">${op(CQ.lv,'','ทุกระดับ')}${FQ_LV.map(([k,l])=>op(CQ.lv,k,l)).join('')}</select></div>
  <div><label for="cqfa">คณะ/วิทยาลัย</label><select id="cqfa" onchange="cqSet('fac',this.value)">${op(CQ.fac,'','ทุกคณะ')}${fo.map(f=>op(CQ.fac,f.id,f.nameTh)).join('')}</select></div>
+ <div><label for="cqsc">ขอบเขตการใช้วิชา</label><select id="cqsc" onchange="cqSet('sc',this.value)">${op(CQ.sc,'','ทุกขอบเขต')}${CQ_SC.map(([k,l])=>op(CQ.sc,k,l)).join('')}${op(CQ.sc,'none','ยังไม่กำหนด')}</select></div>
  <div><label for="cqmj">สาขาวิชา${CQ.fac?'':' (เลือกคณะเพื่อกรองเฉพาะสาขาของคณะนั้น)'}</label><select id="cqmj" onchange="cqSet('maj',this.value)">${op(CQ.maj,'','ทุกสาขา')}${mo.map(m=>op(CQ.maj,m.id,m.nameTh)).join('')}</select></div></div>
  <p class="evm" role="status" aria-live="polite">พบ ${L.length} จาก ${tot} รายวิชา <button type="button" class="btn s" onclick="cqReload()">โหลดข้อมูลล่าสุด</button></p>
  ${CQ.sel.size?`<div class="msg">เลือกแล้ว ${CQ.sel.size} รายการ (เลือกข้ามผลการค้นหาได้) <a class="btn b s${CQ.sel.size<2?' dis':''}" href="${CQ.sel.size<2?'javascript:void 0':'#/admin/courses/merge'}"${CQ.sel.size<2?' aria-disabled="true" title="ต้องเลือกอย่างน้อย 2 รายการ"':''}>รวมรายวิชาที่เลือก</a> <button type="button" class="btn s" onclick="cqSelClear()">ล้างที่เลือก</button></div>`:'<p><small>ติ๊กเลือกวิชาที่เป็นวิชาเดียวกันแต่ใส่รหัสต่างกัน แล้วกด "รวมรายวิชา"</small></p>'}${tot?'':'<div class="hint"><p>ยังไม่มีรายวิชาในระบบ รายวิชาจะแสดงที่นี่เมื่อมีการเพิ่มรายวิชาในแผนการศึกษาของหลักสูตร (จัดการหลักสูตร)</p></div>'}
- ${L.length?`<div class="cqw"><table class="cqt"><thead><tr><th><span class="sr">เลือก</span></th><th>รหัสวิชา</th><th>ชื่อวิชาภาษาไทย</th><th>ชื่อวิชาภาษาอังกฤษ</th><th>หน่วยกิต</th><th>คณะและสาขาที่เปิดสอน</th><th>ระดับ</th><th></th></tr></thead><tbody>${vis.map(e=>{const us=cqUseTxt(e);return `<tr><td><input type="checkbox" class="cqck" aria-label="เลือกรายวิชา ${E(e.code)}"${CQ.sel.has(e.key)?' checked':''} onchange="cqSel('${E(e.key)}',this.checked)"></td><td data-l="รหัสวิชา"><b>${E(e.code)}</b></td><td data-l="ชื่อไทย">${E(e.name)}${e.mixed?' <span class="tag" title="ข้อมูลในแต่ละหลักสูตรยังไม่ตรงกัน บันทึกครั้งเดียวจะทำให้ตรงกัน">ไม่ตรงกัน</span>':''}</td><td data-l="ชื่ออังกฤษ">${E(e.nameEn)}</td><td data-l="หน่วยกิต">${E(e.credits)}</td><td data-l="คณะ/สาขา">${us.slice(0,3).map(E).join('<br>')}${us.length>3?`<br><small>และอีก ${us.length-3} สาขา</small>`:''}<br><small>${e.uses.length} หลักสูตร</small></td><td data-l="ระดับ">${e.lvs.map(fqLv).map(E).join(', ')}</td><td><a class="btn s" href="#/admin/courses/edit/${encodeURIComponent(e.key)}">ดู/แก้ไข</a></td></tr>`}).join('')}</tbody></table></div>${L.length>vis.length?`<p><button type="button" class="btn" onclick="cqSet('n',CQ.n+50)">แสดงเพิ่ม (เหลืออีก ${L.length-vis.length})</button></p>`:''}`:(tot?'<p>ไม่พบรายวิชาที่ตรงกับเงื่อนไข</p>':'')}`}
+ ${L.length?`<div class="cqw"><table class="cqt"><thead><tr><th><span class="sr">เลือก</span></th><th>รหัสวิชา</th><th>ชื่อวิชาภาษาไทย</th><th>ชื่อวิชาภาษาอังกฤษ</th><th>หน่วยกิต</th><th>คณะและสาขาที่เปิดสอน</th><th>ระดับ</th><th></th></tr></thead><tbody>${vis.map(e=>{const us=cqUseTxt(e);return `<tr><td><input type="checkbox" class="cqck" aria-label="เลือกรายวิชา ${E(e.code)}"${CQ.sel.has(e.key)?' checked':''} onchange="cqSel('${E(e.key)}',this.checked)"></td><td data-l="รหัสวิชา"><b>${E(e.code)}</b></td><td data-l="ชื่อไทย">${E(e.name)}${cqScTag(e.scope)}${e.mixed?' <span class="tag" title="ข้อมูลในแต่ละหลักสูตรยังไม่ตรงกัน บันทึกครั้งเดียวจะทำให้ตรงกัน">ไม่ตรงกัน</span>':''}</td><td data-l="ชื่ออังกฤษ">${E(e.nameEn)}</td><td data-l="หน่วยกิต">${E(e.credits)}</td><td data-l="คณะ/สาขา">${us.slice(0,3).map(E).join('<br>')}${us.length>3?`<br><small>และอีก ${us.length-3} สาขา</small>`:''}<br><small>${e.uses.length} หลักสูตร</small></td><td data-l="ระดับ">${e.lvs.map(fqLv).map(E).join(', ')}</td><td><a class="btn s" href="#/admin/courses/edit/${encodeURIComponent(e.key)}">ดู/แก้ไข</a></td></tr>`}).join('')}</tbody></table></div>${L.length>vis.length?`<p><button type="button" class="btn" onclick="cqSet('n',CQ.n+50)">แสดงเพิ่ม (เหลืออีก ${L.length-vis.length})</button></p>`:''}`:(tot?'<p>ไม่พบรายวิชาที่ตรงกับเงื่อนไข</p>':'')}`}
 async function cqReload(){if(!DBH)return say(dbOff(),false);try{await loadAll();WC={};say('โหลดข้อมูลล่าสุดแล้ว')}catch(e){dbErr('โหลดข้อมูลไม่สำเร็จ',e)}}
 const cqPick=(e)=>{const o={};CQ_F.forEach(x=>o[x]=e[x]||'');return o};
 function cqEditor(raw){let k='';try{k=cqNorm(decodeURIComponent(raw||''))}catch(er){}
@@ -284,6 +293,7 @@ function cqEditor(raw){let k='';try{k=cqNorm(decodeURIComponent(raw||''))}catch(
  ${e.mixed?'<div class="msg">ข้อมูลรายวิชานี้ในแต่ละหลักสูตรยังไม่ตรงกัน เมื่อบันทึกจะทำให้ทุกหลักสูตรใช้ค่าเดียวกับที่แสดงด้านล่าง</div>':''}
  <h2>ข้อมูลกลางของรายวิชา</h2><p>การแก้ไขจะมีผลกับทุกหลักสูตรที่ใช้รหัสวิชานี้ (${e.uses.length} หลักสูตร)</p>
  <form id="cqf" onsubmit="return false" oninput="cqSync()">${fi('code','รหัสวิชา',1)}<div class="g2"><div>${fi('name','ชื่อวิชาภาษาไทย',1)}</div><div>${fi('nameEn','ชื่อวิชาภาษาอังกฤษ',1)}</div></div>${fi('credits','จำนวนหน่วยกิต',1,'3 หรือ 3(3-0-6)')}
+ <label for="cq_scope">ขอบเขตการใช้วิชา</label><select id="cq_scope" name="scope"><option value="">ยังไม่กำหนด</option>${CQ_SC.map(([v,l])=>`<option value="${v}"${f.scope===v?' selected':''}>${l}</option>`).join('')}</select><p><small>ใช้ระบุว่าวิชานี้ใช้ร่วมกันในระดับใด (มหาวิทยาลัย/คณะ/สาขา) ไม่ได้หมายความว่าต้องเปิดเป็นหมู่เรียนเดียวกัน การจัดหมู่เรียนจะเป็นส่วนของระบบลงทะเบียนในอนาคต</small></p>
  <label for="cq_desc">คำอธิบายรายวิชา (ถ้ามี)</label><textarea id="cq_desc" name="desc" rows="4">${E(f.desc)}</textarea>
  <label for="cq_descEn">คำอธิบายรายวิชาภาษาอังกฤษ (ถ้ามี)</label><textarea id="cq_descEn" name="descEn" rows="4">${E(f.descEn)}</textarea>
  <p><button type="button" class="btn b" onclick="cqSave()">บันทึก</button> <a class="btn" href="#/admin/courses">ยกเลิก</a></p></form>
@@ -297,11 +307,12 @@ async function cqSave(){cqSync();const w=WC.cq;if(!w)return;if(!DBH)return say(d
  try{
   const {data,error}=await SB.from('site_docs').select('key,data');if(error)throw error;
   const row=(data||[]).find(r=>r.key==='programs'),P=Array.isArray(row&&row.data)?clone(row.data):[];
-  const hit=[],nk=cqNorm(f.code);
-  P.forEach(p=>fqCsAll(p.plan).forEach(({c})=>{if(cqNorm(c.code)===w.key)hit.push(c)}));
+  const hit=[],hp=[],nk=cqNorm(f.code);
+  P.forEach(p=>fqCsAll(p.plan).forEach(({c})=>{if(cqNorm(c.code)===w.key){hit.push(c);hp.push(p)}}));
   const cur={};hit.forEach(c=>cur[c.id]=JSON.stringify(CQ_F.map(x=>String(c[x]||''))));
   const ids=Object.keys(w.snap),stale=ids.length!==hit.length||ids.some(i=>cur[i]!==w.snap[i]);
   if(stale){if(row)SHR.programs=row.data;WC.cq=null;return say('รายวิชานี้ถูกผู้ดูแลคนอื่นแก้ไขหรือเปลี่ยนแปลงไปก่อนหน้า จึงยังไม่บันทึกทับ ระบบโหลดข้อมูลล่าสุดมาแสดงแล้ว กรุณาตรวจสอบและแก้ไขอีกครั้ง',false)}
+  {const se=cqScopeErr(f.scope,hp);if(se)return say(se,false)}
   if(nk!==w.key&&cqIndex(P).has(nk))return say('รหัสวิชา "'+f.code+'" มีอยู่แล้วในระบบ หากเป็นวิชาเดียวกันให้แก้ไขที่รายวิชานั้นแทน',false);
   hit.forEach(c=>CQ_F.forEach(x=>{c[x]=f[x]}));
   await putDoc('programs',P);
@@ -313,7 +324,8 @@ async function cqSave(){cqSync();const w=WC.cq;if(!w)return;if(!DBH)return say(d
    เขียนกลับเฉพาะ code/name/nameEn/credits/desc/descEn ของรายวิชาที่เลือก ไม่แตะ type/pre/show/id ของแต่ละหลักสูตร
    ตรวจซ้ำกับข้อมูลล่าสุดในฐานข้อมูลก่อนเขียน แล้วเขียนเอกสาร programs ครั้งเดียว (ไม่เกิดการแก้ไขเพียงบางส่วน) */
 CQ.sel=new Set();
-const CQ_M=[['name','ชื่อวิชาภาษาไทย'],['nameEn','ชื่อวิชาภาษาอังกฤษ'],['credits','จำนวนหน่วยกิต'],['desc','คำอธิบายรายวิชา'],['descEn','คำอธิบายรายวิชาภาษาอังกฤษ']];
+const cqFv=(f,v)=>f==='scope'?cqScLbl(v):v;
+const CQ_M=[['scope','ขอบเขตการใช้วิชา'],['name','ชื่อวิชาภาษาไทย'],['nameEn','ชื่อวิชาภาษาอังกฤษ'],['credits','จำนวนหน่วยกิต'],['desc','คำอธิบายรายวิชา'],['descEn','คำอธิบายรายวิชาภาษาอังกฤษ']];
 const cqSnap=c=>JSON.stringify(CQ_F.map(x=>String(c[x]||'')));
 function cqSel(k,on){on?CQ.sel.add(k):CQ.sel.delete(k);render()}
 function cqSelClear(){CQ.sel.clear();render()}
@@ -326,7 +338,7 @@ function cqMerge(){const idx=cqIndex(),ks=[...CQ.sel].filter(k=>idx.has(k)).sort
  <form id="mgf" onsubmit="return false" onchange="cqMgSync()">
  <h2>1. รายวิชาที่เลือก และเลือกรหัสหลัก</h2><div class="cqw"><table class="cqt"><thead><tr><th>รหัสหลัก</th><th>รหัสวิชา</th><th>ชื่อวิชา</th><th>หน่วยกิต</th><th>หลักสูตรที่ใช้</th></tr></thead><tbody>${L.map((e,i)=>`<tr><td data-l="รหัสหลัก"><label>${rd('mgp',i,w.primary===i)}</label></td><td data-l="รหัสวิชา"><b>${E(e.code)}</b></td><td data-l="ชื่อวิชา">${E(e.name)}<br><small>${E(e.nameEn)}</small></td><td data-l="หน่วยกิต">${E(e.credits)}</td><td data-l="หลักสูตร">${e.uses.map(u=>E(u.p.nameTh)+' <small>('+E(u.f?u.f.nameTh:'-')+')</small>').join('<br>')}</td></tr>`).join('')}</tbody></table></div>
  <h2>2. กำหนดข้อมูลกลางที่จะใช้</h2><p><small>ช่องที่ข้อมูลตรงกันทุกรายการไม่ต้องเลือก ช่องที่ต่างกันให้เลือกค่าที่ต้องการ</small></p>
- ${CQ_M.map(([f,l])=>{const vs=L.map(e=>e[f]||''),same=vs.every(v=>v===vs[0]);return `<fieldset><legend>${l}</legend>${same?`<p>ตรงกันทุกรายการ: ${vs[0]?E(vs[0]):'<small>(ว่าง)</small>'}</p>`:vs.map((v,i)=>`<label>${rd('mg_'+f,i,w.pick[f]===i)} <small>${E(L[i].code)}:</small> ${v?E(v):'<small>(ว่าง)</small>'}</label>`).join('')}</fieldset>`}).join('')}
+ ${CQ_M.map(([f,l])=>{const vs=L.map(e=>e[f]||''),same=vs.every(v=>v===vs[0]);return `<fieldset><legend>${l}</legend>${same?`<p>ตรงกันทุกรายการ: ${vs[0]?E(cqFv(f,vs[0])):'<small>(ว่าง)</small>'}</p>`:vs.map((v,i)=>`<label>${rd('mg_'+f,i,w.pick[f]===i)} <small>${E(L[i].code)}:</small> ${v?E(cqFv(f,v)):'<small>(ว่าง/ไม่กำหนด)</small>'}</label>`).join('')}</fieldset>`}).join('')}
  <p><button type="button" class="btn b" onclick="cqMgAsk()">ตรวจสอบและสรุปผลก่อนรวม</button> <a class="btn" href="#/admin/courses">ยกเลิก</a></p></form>`}
 function cqMgSync(){const fm=$('mgf'),w=WC.mg;if(!fm||!w)return;const d=new FormData(fm);if(d.has('mgp'))w.primary=+d.get('mgp');CQ_M.forEach(([f])=>{if(d.has('mg_'+f))w.pick[f]=+d.get('mg_'+f)})}
 const cqMgFinal=w=>{const o={code:w.E[w.primary].code};CQ_M.forEach(([f])=>o[f]=w.E[w.pick[f]][f]);Object.keys(o).forEach(k=>o[k]=String(o[k]||'').trim());return o};
@@ -336,6 +348,7 @@ function cqMgCalc(P,w){const keys=new Set(w.ks),fin=cqMgFinal(w),errs=[],hit=[],
  if(!fin.code)errs.push('ต้องระบุรหัสหลัก');if(!fin.name)errs.push('ชื่อวิชาภาษาไทยที่เลือกเป็นค่าว่าง กรุณาเลือกค่าที่มีข้อมูล');if(!fin.nameEn)errs.push('ชื่อวิชาภาษาอังกฤษที่เลือกเป็นค่าว่าง กรุณาเลือกค่าที่มีข้อมูล');
  if(!fin.credits||!cqRe.test(fin.credits)||!(parseFloat(fin.credits)>=0&&parseFloat(fin.credits)<=30))errs.push('หน่วยกิตที่เลือกว่างหรือไม่ถูกต้อง (ใช้ เช่น 3 หรือ 3(3-0-6) และไม่เกิน 30)');
  byP.forEach((cs,id)=>{if(cs.length>1){const p=P.find(x=>x.id===id);errs.push('หลักสูตร "'+p.nameTh+'" มีวิชาที่เลือกอยู่ '+cs.length+' รายการ (รหัส '+cs.map(c=>c.code).join(', ')+') การรวมจะทำให้รหัสซ้ำในหลักสูตรเดียวกัน ต้องแก้ไขในหลักสูตรนั้นก่อน')}});
+ {const se=cqScopeErr(fin.scope,[...byP.keys()].map(id=>P.find(p=>p.id===id)));if(se)errs.push(se)}
  const chg=hit.filter(({c})=>CQ_F.some(f=>String(c[f]||'')!==fin[f]));
  return {fin,errs,hit,stale,chg,progs:[...new Set(chg.map(x=>x.p.id))].map(id=>P.find(p=>p.id===id))}}
 function cqMgAsk(){cqMgSync();const w=WC.mg;if(!w)return;const r=cqMgCalc(fqP(),w);
@@ -368,10 +381,10 @@ function cqProg(pid){const bk='<p><a class="bk" href="#/admin/courses">← ค�
  const m=mj.get(p.majorId),f=m&&fo.find(x=>x.id===m.facultyId),all=fqCsAll(p.plan),have=new Set(all.map(x=>cqNorm(x.c.code)).filter(Boolean)),
  terms=all.length||(p.plan||[]).some(y=>(y.terms||[]).length)?(p.plan||[]).flatMap((y,yi)=>(y.terms||[]).map((t,ti)=>({id:t.id,l:(y.name||'ชั้นปีที่ '+(yi+1))+' › '+(t.name||'ภาคการศึกษาที่ '+(ti+1))}))):[];
  if(!terms.some(t=>t.id===CQP.term))CQP.term=terms[0]?terms[0].id:'';
- const loc=new Map();(p.plan||[]).forEach((y,yi)=>(y.terms||[]).forEach((t,ti)=>(t.courses||[]).forEach(c=>loc.set(c.id,(y.name||'ชั้นปีที่ '+(yi+1))+' › '+(t.name||'ภาคการศึกษาที่ '+(ti+1))))));
+ const loc=new Map();(p.plan||[]).forEach((y,yi)=>(y.terms||[]).forEach((t,ti)=>(t.courses||[]).forEach(c=>loc.set(c.id,t.id))));
  const tsel=(cur,fn)=>`<select aria-label="ประเภทวิชา" onchange="${fn}">${CS_TY.map(([v,l])=>`<option value="${v}"${csTyK(cur)===v?' selected':''}>${l}</option>`).join('')}</select>`;
  const grp=CS_TY.map(([k,l])=>{const it=all.filter(x=>csTyK(x.c.type)===k),cr=it.reduce((s,x)=>s+(parseFloat(x.c.credits)||0),0);
-  return `<h2>${l} <small>(${it.length} วิชา${it.length?' · '+cr+' หน่วยกิต':''})</small></h2>${it.length?`<div class="cqw"><table class="cqt"><thead><tr><th>รหัสวิชา</th><th>ชื่อวิชา</th><th>หน่วยกิต</th><th>ภาคการศึกษา</th><th>ประเภทวิชา</th><th></th></tr></thead><tbody>${it.map(({c})=>`<tr><td data-l="รหัสวิชา"><b>${E(c.code)}</b></td><td data-l="ชื่อวิชา">${E(c.name)}<br><small>${E(c.nameEn)}</small>${c.show===false?' <span class="tag">ซ่อนอยู่</span>':''}</td><td data-l="หน่วยกิต">${E(c.credits)}</td><td data-l="ภาค"><small>${E(loc.get(c.id)||'')}</small></td><td data-l="ประเภท">${tsel(c.type,`cqPgType('${E(c.id)}',this.value)`)}</td><td><button type="button" class="btn s c" onclick="cqPgDelAsk('${E(c.id)}')">นำออก</button></td></tr>`).join('')}</tbody></table></div>`:'<p><small>ยังไม่มีรายวิชาในประเภทนี้</small></p>'}`}).join('');
+  return `<h2>${l} <small>(${it.length} วิชา${it.length?' · '+cr+' หน่วยกิต':''})</small></h2>${it.length?`<div class="cqw"><table class="cqt"><thead><tr><th>รหัสวิชา</th><th>ชื่อวิชา</th><th>หน่วยกิต</th><th>ชั้นปี/ภาคที่แนะนำ</th><th>ประเภทวิชา</th><th></th></tr></thead><tbody>${it.map(({c})=>`<tr><td data-l="รหัสวิชา"><b>${E(c.code)}</b></td><td data-l="ชื่อวิชา">${E(c.name)}<br><small>${E(c.nameEn)}</small>${cqScTag(c.scope)}${c.show===false?' <span class="tag">ซ่อนอยู่</span>':''}</td><td data-l="หน่วยกิต">${E(c.credits)}</td><td data-l="ภาค"><select aria-label="ชั้นปีและภาคการศึกษาที่แนะนำ" onchange="cqPgMove('${E(c.id)}',this.value)">${terms.map(t=>`<option value="${E(t.id)}"${loc.get(c.id)===t.id?' selected':''}>${E(t.l)}</option>`).join('')}</select></td><td data-l="ประเภท">${tsel(c.type,`cqPgType('${E(c.id)}',this.value)`)}</td><td><button type="button" class="btn s c" onclick="cqPgDelAsk('${E(c.id)}')">นำออก</button></td></tr>`).join('')}</tbody></table></div>`:'<p><small>ยังไม่มีรายวิชาในประเภทนี้</small></p>'}`}).join('');
  const q=CQP.q.trim().toLowerCase(),lib=[...cqIndex().values()].filter(e=>!have.has(e.key)&&(!q||cqHay(e).includes(q))).sort((a,b)=>a.key.localeCompare(b.key)),
  add=`<h2>เพิ่มรายวิชาจากคลังรายวิชา</h2><div class="g2"><div><label for="cqpq">ค้นหา (รหัสวิชา หรือชื่อวิชา)</label><input id="cqpq" type="search" value="${E(CQP.q)}" oninput="cqpSet('q',this.value)"></div>
  <div><label for="cqpty">เพิ่มเป็นประเภท</label><select id="cqpty" onchange="cqpSet('ty',this.value)">${CS_TY.map(([v,l])=>`<option value="${v}"${CQP.ty===v?' selected':''}>${l}</option>`).join('')}</select></div></div>
@@ -387,11 +400,14 @@ async function cqPgRun(fn,okMsg){if(!DBH)return say(dbOff(),false);
 function cqPgAdd(k){cqPgRun((P,p)=>{const e=cqIndex(P).get(k);if(!e)return 'ไม่พบรายวิชานี้ในคลังแล้ว (อาจถูกเปลี่ยนรหัสหรือถูกนำออก) โหลดข้อมูลล่าสุดแล้ว';
   if(fqCsAll(p.plan).some(({c})=>cqNorm(c.code)===k))return 'หลักสูตรนี้มีรายวิชา '+e.code+' อยู่แล้ว';
   if(!CS_TY.some(x=>x[0]===CQP.ty))return 'ประเภทวิชาไม่ถูกต้อง';
+  {const se=cqScopeErr(e.scope,[...e.uses.map(u=>u.p),p]);if(se)return 'เพิ่มวิชา '+e.code+' ไม่ได้: '+se}
   if(!Array.isArray(p.plan))p.plan=[];let t=null;p.plan.forEach(y=>(y.terms||[]).forEach(x=>{if(x.id===CQP.term)t=x}));
   if(!t){let yr=p.plan.find(y=>Array.isArray(y.terms)&&y.terms.length);if(yr)t=yr.terms[0];else{if(p.plan.length>=6)return 'แผนการศึกษารองรับสูงสุด 6 ชั้นปี';yr={id:mkId('yr'),name:'ชั้นปีที่ '+(p.plan.length+1),note:'',terms:[fqNewTerm('ภาคการศึกษาที่ 1'),fqNewTerm('ภาคการศึกษาที่ 2')]};p.plan.push(yr);t=yr.terms[0]}}
   if(!Array.isArray(t.courses))t.courses=[];
-  t.courses.push({id:mkId('cs'),code:e.code,name:e.name,nameEn:e.nameEn,credits:e.credits,type:CQP.ty,desc:e.desc,descEn:e.descEn,pre:[],show:true});return ''},'เพิ่มรายวิชาเข้าหลักสูตรเรียบร้อย')}
+  t.courses.push({id:mkId('cs'),code:e.code,name:e.name,nameEn:e.nameEn,credits:e.credits,type:CQP.ty,desc:e.desc,descEn:e.descEn,scope:e.scope||'',pre:[],show:true});return ''},'เพิ่มรายวิชาเข้าหลักสูตรเรียบร้อย')}
 function cqPgType(cid,ty){cqPgRun((P,p)=>{if(!CS_TY.some(x=>x[0]===ty))return 'ประเภทวิชาไม่ถูกต้อง';const x=fqCsAll(p.plan).find(y=>y.c.id===cid);if(!x)return 'ไม่พบรายวิชานี้ในหลักสูตรแล้ว (อาจถูกนำออกโดยผู้ดูแลคนอื่น) โหลดข้อมูลล่าสุดแล้ว';x.c.type=ty;return ''},'เปลี่ยนประเภทวิชาเรียบร้อย')}
+function cqPgMove(cid,tid){cqPgRun((P,p)=>{const x=fqCsAll(p.plan).find(y=>y.c.id===cid);if(!x)return 'ไม่พบรายวิชานี้ในหลักสูตรแล้ว โหลดข้อมูลล่าสุดแล้ว';let t=null;(p.plan||[]).forEach(y=>(y.terms||[]).forEach(z=>{if(z.id===tid)t=z}));if(!t)return 'ไม่พบภาคการศึกษาปลายทาง';if(t===x.t)return '';
+  x.t.courses=x.t.courses.filter(c=>c.id!==cid);t.courses=(t.courses||[]).concat([x.c]);return ''},'ย้ายวิชาไปภาคการศึกษาที่แนะนำเรียบร้อย')}
 function cqPgDelAsk(cid){const p=fqP().find(x=>x.id===cqPgId()),x=p&&fqCsAll(p.plan).find(y=>y.c.id===cid);if(!x)return;const c=x.c,k=cqNorm(c.code),dep=fqCsAll(p.plan).filter(y=>y.c.id!==cid&&(y.c.pre||[]).includes(cid)).map(y=>y.c.code||y.c.name);
  const sole=!k||cqUses(fqP(),k)<2;
  $('md').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div><h3>นำรายวิชาออกจากหลักสูตร</h3><p><b>${E(c.code)}</b> ${E(c.name)}</p>${sole?`<div class="msg er">ยังนำออกไม่ได้: วิชานี้${k?'ไม่ได้ใช้ในหลักสูตรอื่น':'ยังไม่มีรหัสวิชา'} หากนำออก ข้อมูลวิชาจะหายไปจากคลังรายวิชา (ปัจจุบันคลังคำนวณจากแผนการศึกษาของหลักสูตรต่าง ๆ)</div>`:`<p>จะนำวิชานี้ออกจากหลักสูตรนี้เท่านั้น ข้อมูลวิชาในคลังและหลักสูตรอื่นไม่เปลี่ยน</p>${dep.length?`<p><small>วิชาที่ใช้วิชานี้เป็นวิชาบังคับก่อนในหลักสูตรนี้: ${E(dep.join(', '))} ระบบจะเอาเงื่อนไขนั้นออก</small></p>`:''}`}
