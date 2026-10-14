@@ -438,7 +438,7 @@ function pmView(){const F=fqF().slice().sort(pmNm),M=fqM(),P=fqP(),mo=M.filter(m
  if(!t)return head+'<p><small>เลือกให้ครบทั้ง 5 ช่อง ระบบจะแสดงรายวิชาในภาคการศึกษาที่เลือก</small></p>';
  const yi=yo.indexOf(y),ti=to.indexOf(t),cs=(t.courses||[]).filter(Boolean),all=fqCsAll(p.plan),byId=new Map(all.map(x=>[x.c.id,x.c])),have=new Set(all.map(x=>cqNorm(x.c.code)).filter(Boolean)),
  tot=cs.reduce((s,c)=>s+crN(c.credits),0),
- rows=cs.length?`<div class="cqw"><table class="cqt"><thead><tr><th>รหัสวิชา</th><th>ชื่อวิชา</th><th>หน่วยกิต</th><th>ประเภทวิชา</th><th>วิชาบังคับก่อน</th></tr></thead><tbody>${cs.map(c=>{const pr=(c.pre||[]).map(id=>byId.get(id)).filter(Boolean).map(x=>x.code||x.name);return `<tr><td data-l="รหัสวิชา"><b>${E(c.code)}</b></td><td data-l="ชื่อวิชา">${E(c.name)}<br><small>${E(c.nameEn)}</small>${c.show===false?' <span class="tag">ซ่อนอยู่</span>':''}</td><td data-l="หน่วยกิต">${E(c.credits)}</td><td data-l="ประเภท">${E((CS_TY.find(x=>x[0]===csTyK(c.type))||[,''])[1])}</td><td data-l="บังคับก่อน">${pr.length?E(pr.join(', ')):'-'}</td></tr>`}).join('')}</tbody></table></div>`:'<p><small>ยังไม่มีรายวิชาในภาคการศึกษานี้</small></p>',
+ rows=cs.length?`<div class="cqw"><table class="cqt"><thead><tr><th>รหัสวิชา</th><th>ชื่อวิชา</th><th>หน่วยกิต</th><th>ประเภทวิชา</th><th>วิชาบังคับก่อน</th><th>จัดการ</th></tr></thead><tbody>${cs.map(c=>{const pr=(c.pre||[]).map(id=>byId.get(id)).filter(Boolean).map(x=>x.code||x.name);return `<tr><td data-l="รหัสวิชา"><b>${E(c.code)}</b></td><td data-l="ชื่อวิชา">${E(c.name)}<br><small>${E(c.nameEn)}</small>${c.show===false?' <span class="tag">ซ่อนอยู่</span>':''}</td><td data-l="หน่วยกิต">${E(c.credits)}</td><td data-l="ประเภท">${E((CS_TY.find(x=>x[0]===csTyK(c.type))||[,''])[1])}</td><td data-l="บังคับก่อน">${pr.length?E(pr.join(', ')):'-'}</td><td data-l="จัดการ"><button type="button" class="btn s c" onclick="pmDelAsk('${E(c.id)}')" aria-label="นำรายวิชา ${E(c.code)} ออกจากภาคนี้">นำออก</button></td></tr>`}).join('')}</tbody></table></div>`:'<p><small>ยังไม่มีรายวิชาในภาคการศึกษานี้</small></p>',
  q=PM.q.trim().toLowerCase(),lib=[...cqIndex().values()].filter(e=>!have.has(e.key)&&(!q||cqHay(e).includes(q))).sort((a,b)=>a.key.localeCompare(b.key)),
  add=`<h2>เพิ่มรายวิชาจากคลังรายวิชากลาง</h2><p><small>กด "เพิ่ม" เพื่อคัดลอกข้อมูลวิชา (รหัส ชื่อ หน่วยกิต คำอธิบาย) เข้าภาคนี้ทันที ไม่ต้องกรอกซ้ำ ประเภทวิชาและวิชาบังคับก่อนเป็นของหลักสูตรนี้เท่านั้น</small></p><div class="g2"><div><label for="pmq">ค้นหา (รหัสวิชา ชื่อไทย ชื่ออังกฤษ)</label><input id="pmq" type="search" value="${E(PM.q)}" oninput="pmSet('q',this.value)" autocomplete="off"></div><div><label for="pmty">เพิ่มเป็นประเภท</label><select id="pmty" onchange="pmSet('ty',this.value)">${CS_TY.map(([v,l])=>`<option value="${v}"${PM.ty===v?' selected':''}>${l}</option>`).join('')}</select></div></div>
  <p class="evm" role="status" aria-live="polite">${q?'พบ '+lib.length+' รายวิชาในคลังที่ยังไม่อยู่ในหลักสูตรนี้':'วิชาในคลังที่ยังไม่อยู่ในหลักสูตรนี้ '+lib.length+' รายวิชา (พิมพ์เพื่อค้นหา)'}</p>
@@ -497,6 +497,26 @@ async function pmNwSave(){if(!DBH)return say(dbOff(),false);const R=PM.nw||[];if
   if(!Array.isArray(t.courses))t.courses=[];out.forEach(c=>t.courses.push(c));
   await putDoc('programs',P);PM.nw=null;PM.nwE={};PM.nwC={};PM.nwG='';say('บันทึกสำเร็จ: เพิ่ม '+out.length+' รายวิชา ('+out.map(c=>c.code).join(', ')+') เข้า '+(y.name||'ชั้นปี')+' › '+(t.name||'ภาคการศึกษา')+' แล้ว');scrollTo(0,0)}
  catch(er){PM.nwG='บันทึกไม่สำเร็จ ข้อมูลที่กรอกยังอยู่ในแบบฟอร์ม';dbErr('บันทึกไม่สำเร็จ',er)}}
+
+/* ===== เฟส 3: นำรายวิชาออกจากภาคการศึกษาที่เลือก (ลบเฉพาะรายการนี้ในแผนของหลักสูตรนี้) =====
+   ไม่ลบจากคลังกลาง/หลักสูตรอื่น: คลังคำนวณจากแผนของทุกหลักสูตร จึงไม่อนุญาตนำออกถ้านี่เป็นหลักสูตรสุดท้ายที่ใช้รหัสนี้ (ตรงกับหน้า "จัดรายวิชาตามหลักสูตร")
+   วิชาอื่นที่ใช้วิชานี้เป็นวิชาบังคับก่อน (ในหลักสูตรเดียวกัน) จะถูกเอาเฉพาะเงื่อนไขนี้ออกด้วย fqPurgePre เดิม ข้อมูลอื่นไม่เปลี่ยน */
+function pmDelAsk(cid){const p=fqP().find(x=>x.id===PM.prog),y=p&&(p.plan||[]).find(a=>a&&a.id===PM.yr),t=y&&(y.terms||[]).find(a=>a&&a.id===PM.tm),c=t&&(t.courses||[]).find(a=>a&&a.id===cid);if(!c)return say('ไม่พบรายวิชานี้ในภาคที่เลือกแล้ว (อาจถูกแก้ไขโดยผู้ดูแลคนอื่น)',false);
+ const k=cqNorm(c.code),sole=!k||cqUses(fqP(),k)<2,dep=fqCsAll(p.plan).filter(x=>x.c.id!==cid&&(x.c.pre||[]).includes(cid)).map(x=>x.c.code||x.c.name);
+ $('md').innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="pmdt"><div><h3 id="pmdt">นำรายวิชาออกจากภาคการศึกษา</h3><p><b>${E(c.code)}</b> ${E(c.name)}</p><p><small>${E(p.nameTh)} › ${E(y.name||'ชั้นปี')} › ${E(t.name||'ภาคการศึกษา')}</small></p>
+ ${sole?`<div class="msg er">ยังนำออกไม่ได้: ${k?'วิชานี้ไม่ได้ใช้ในหลักสูตรอื่น':'วิชานี้ยังไม่มีรหัสวิชา'} หากนำออก ข้อมูลวิชาจะหายไปจากคลังรายวิชากลาง (คลังคำนวณจากแผนการศึกษาของหลักสูตรต่าง ๆ) ${k?'':'หากต้องการลบ ให้ใช้หน้าแก้ไขหลักสูตร'}</div>`
+ :`<p>จะนำวิชานี้ออกจากภาคการศึกษานี้ของหลักสูตรนี้เท่านั้น ข้อมูลวิชาในคลังกลางและหลักสูตรอื่นไม่เปลี่ยน</p>${dep.length?`<p><small>วิชาที่ใช้วิชานี้เป็นวิชาบังคับก่อนในหลักสูตรนี้: ${E(dep.join(', '))} ระบบจะเอาเฉพาะเงื่อนไขนี้ออก</small></p>`:''}`}
+ <p>${sole?'':`<button type="button" class="btn c" onclick="pmDel('${E(cid)}')">ยืนยันนำออก</button> `}<button type="button" class="btn" onclick="$('md').innerHTML=''">${sole?'ปิด':'ยกเลิก'}</button></p></div></div>`}
+async function pmDel(cid){$('md').innerHTML='';if(!DBH)return say(dbOff(),false);
+ try{const P=await cqFresh(),p=P.find(x=>x.id===PM.prog),bad=m=>{SHR.programs=P;return say(m,false)};
+  if(!p)return bad('ไม่พบหลักสูตรนี้ (อาจถูกลบโดยผู้ดูแลคนอื่น) ไม่มีข้อมูลถูกเปลี่ยน โหลดข้อมูลล่าสุดแล้ว');
+  const y=(p.plan||[]).find(a=>a&&a.id===PM.yr),t=y&&(y.terms||[]).find(a=>a&&a.id===PM.tm);
+  if(!t)return bad('ไม่พบชั้นปี/ภาคการศึกษาที่เลือก (อาจถูกแก้ไขโดยผู้ดูแลคนอื่น) ไม่มีข้อมูลถูกเปลี่ยน โหลดข้อมูลล่าสุดแล้ว');
+  const c=(t.courses||[]).find(a=>a&&a.id===cid);if(!c)return bad('ไม่พบรายวิชานี้ในภาคที่เลือกแล้ว (อาจถูกนำออกหรือย้ายโดยผู้ดูแลคนอื่น) ไม่มีข้อมูลถูกเปลี่ยน โหลดข้อมูลล่าสุดแล้ว');
+  const k=cqNorm(c.code);if(!k||cqUses(P,k)<2)return bad('ไม่สามารถนำออกได้: วิชานี้จะหายไปจากคลังรายวิชากลาง');
+  t.courses=t.courses.filter(a=>a&&a.id!==cid);fqPurgePre(p.plan,[cid]);
+  await putDoc('programs',P);say('นำรายวิชา '+c.code+' ออกจาก '+(y.name||'ชั้นปี')+' › '+(t.name||'ภาคการศึกษา')+' เรียบร้อย (ข้อมูลวิชาในคลังกลางและหลักสูตรอื่นไม่เปลี่ยน)')}
+ catch(er){dbErr('นำรายวิชาออกไม่สำเร็จ ไม่มีข้อมูลถูกเปลี่ยน',er)}}
 
 /* ===== Router ===== */
 
