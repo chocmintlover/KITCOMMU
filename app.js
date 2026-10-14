@@ -419,9 +419,9 @@ function cqPgDel(cid){$('md').innerHTML='';cqPgRun((P,p)=>{const x=fqCsAll(p.pla
    ใช้ข้อมูลเดิม programs[].plan[].terms[].courses[] ไม่เพิ่ม field/ตารางใหม่ และเรียกใช้ cqIndex/cqFresh/putDoc/cqScopeErr ของเดิม
    ประเภทวิชา (type) และวิชาบังคับก่อน (pre) อยู่ในรายวิชาของแต่ละหลักสูตรเหมือนเดิม การเพิ่มวิชาเขียนเฉพาะหลักสูตรที่เลือก
    ยังไม่รวม: สร้างวิชาใหม่ที่ไม่มีในคลัง, เพิ่มหลายแถวพร้อมกัน (เฟสถัดไป) */
-const PM={fac:'',maj:'',prog:'',yr:'',tm:'',q:'',ty:'required',nw:null,nwE:{},nwC:{},nwG:''};
+const PM={fac:'',maj:'',prog:'',yr:'',tm:'',q:'',at:'',sel:new Set(),n:20,nw:null,nwE:{},nwC:{},nwG:''};
 const pmYn=(y,i)=>y.name||'ชั้นปีที่ '+(i+1),pmTn=(t,i)=>t.name||'ภาคการศึกษาที่ '+(i+1),pmNm=(a,b)=>(a.nameTh||'').localeCompare(b.nameTh||'','th');
-function pmSet(k,v){PM[k]=v;const o=['fac','maj','prog','yr','tm'],i=o.indexOf(k);if(i>=0){o.slice(i+1).forEach(x=>PM[x]='');PM.q='';PM.nw=null;PM.nwE={};PM.nwC={};PM.nwG=''}
+function pmSet(k,v){PM[k]=v;if(k==='q')PM.n=20;const o=['fac','maj','prog','yr','tm'],i=o.indexOf(k);if(i>=0){o.slice(i+1).forEach(x=>PM[x]='');PM.q='';PM.n=20;PM.sel.clear();PM.nw=null;PM.nwE={};PM.nwC={};PM.nwG=''}
  const a=document.activeElement,s=a&&a.id==='pmq'?a.selectionStart:null;render();if(s!=null){const n=$('pmq');if(n){n.focus();try{n.setSelectionRange(s,s)}catch(e){}}}}
 function pmView(){const F=fqF().slice().sort(pmNm),M=fqM(),P=fqP(),mo=M.filter(m=>m.facultyId===PM.fac).sort(pmNm);
  if(!F.some(f=>f.id===PM.fac))PM.fac='';
@@ -439,28 +439,42 @@ function pmView(){const F=fqF().slice().sort(pmNm),M=fqM(),P=fqP(),mo=M.filter(m
  const yi=yo.indexOf(y),ti=to.indexOf(t),cs=(t.courses||[]).filter(Boolean),all=fqCsAll(p.plan),byId=new Map(all.map(x=>[x.c.id,x.c])),have=new Set(all.map(x=>cqNorm(x.c.code)).filter(Boolean)),
  tot=cs.reduce((s,c)=>s+crN(c.credits),0),
  rows=cs.length?`<div class="cqw"><table class="cqt"><thead><tr><th>รหัสวิชา</th><th>ชื่อวิชา</th><th>หน่วยกิต</th><th>ประเภทวิชา</th><th>วิชาบังคับก่อน</th><th>จัดการ</th></tr></thead><tbody>${cs.map(c=>{const pr=(c.pre||[]).map(id=>byId.get(id)).filter(Boolean).map(x=>x.code||x.name);return `<tr><td data-l="รหัสวิชา"><b>${E(c.code)}</b></td><td data-l="ชื่อวิชา">${E(c.name)}<br><small>${E(c.nameEn)}</small>${c.show===false?' <span class="tag">ซ่อนอยู่</span>':''}</td><td data-l="หน่วยกิต">${E(c.credits)}</td><td data-l="ประเภท">${E((CS_TY.find(x=>x[0]===csTyK(c.type))||[,''])[1])}</td><td data-l="บังคับก่อน">${pr.length?E(pr.join(', ')):'-'}</td><td data-l="จัดการ"><button type="button" class="btn s c" onclick="pmDelAsk('${E(c.id)}')" aria-label="นำรายวิชา ${E(c.code)} ออกจากภาคนี้">นำออก</button></td></tr>`}).join('')}</tbody></table></div>`:'<p><small>ยังไม่มีรายวิชาในภาคการศึกษานี้</small></p>',
- q=PM.q.trim().toLowerCase(),lib=[...cqIndex().values()].filter(e=>!have.has(e.key)&&(!q||cqHay(e).includes(q))).sort((a,b)=>a.key.localeCompare(b.key)),
- add=`<h2>เพิ่มรายวิชาจากคลังรายวิชากลาง</h2><p><small>กด "เพิ่ม" เพื่อคัดลอกข้อมูลวิชา (รหัส ชื่อ หน่วยกิต คำอธิบาย) เข้าภาคนี้ทันที ไม่ต้องกรอกซ้ำ ประเภทวิชาและวิชาบังคับก่อนเป็นของหลักสูตรนี้เท่านั้น</small></p><div class="g2"><div><label for="pmq">ค้นหา (รหัสวิชา ชื่อไทย ชื่ออังกฤษ)</label><input id="pmq" type="search" value="${E(PM.q)}" oninput="pmSet('q',this.value)" autocomplete="off"></div><div><label for="pmty">เพิ่มเป็นประเภท</label><select id="pmty" onchange="pmSet('ty',this.value)">${CS_TY.map(([v,l])=>`<option value="${v}"${PM.ty===v?' selected':''}>${l}</option>`).join('')}</select></div></div>
- <p class="evm" role="status" aria-live="polite">${q?'พบ '+lib.length+' รายวิชาในคลังที่ยังไม่อยู่ในหลักสูตรนี้':'วิชาในคลังที่ยังไม่อยู่ในหลักสูตรนี้ '+lib.length+' รายวิชา (พิมพ์เพื่อค้นหา)'}</p>
- ${lib.slice(0,20).map(e=>`<div class="row"><b>${E(e.code)}</b> ${E(e.name)} <small>/ ${E(e.nameEn)} · ${E(e.credits)} หน่วยกิต · ใช้ใน ${e.uses.length} หลักสูตร</small> <button type="button" class="btn s b" data-k="${E(e.key)}" onclick="pmAdd(this.dataset.k)">เพิ่ม</button></div>`).join('')}${lib.length>20?'<p><small>แสดง 20 รายการแรก พิมพ์ค้นหาเพื่อกรองเพิ่ม</small></p>':''}${!lib.length&&!q?'<p><small>ยังไม่มีรายวิชาอื่นในคลังกลาง (คลังคำนวณจากรายวิชาที่อยู่ในแผนการศึกษาของทุกหลักสูตร)</small></p>':''}`;
+ q=PM.q.trim().toLowerCase(),pool=[...cqIndex().values()].filter(e=>!have.has(e.key)),lib=pool.filter(e=>!q||cqHay(e).includes(q)).sort((a,b)=>a.key.localeCompare(b.key)),
+ pk=new Set(pool.map(e=>e.key)),tyOk=CS_TY.some(x=>x[0]===PM.at),tyL=(CS_TY.find(x=>x[0]===PM.at)||[,''])[1],sel=(PM.sel=new Set([...PM.sel].filter(k=>pk.has(k)))).size,shown=lib.slice(0,PM.n),
+ add=`<h2>เพิ่มรายวิชาจากคลังรายวิชากลาง</h2><p><small>เลือกประเภทวิชาก่อน แล้วเลือกวิชาจากคลังกลางได้หลายรายการ ระบบคัดลอกข้อมูลวิชา (รหัส ชื่อ หน่วยกิต คำอธิบาย) เข้าภาคนี้ทันที ประเภทวิชาที่เลือกใช้กับหลักสูตรนี้เท่านั้น ไม่เปลี่ยนประเภทของวิชานี้ในหลักสูตรอื่น วิชาที่มีอยู่ในหลักสูตรนี้แล้ว (ภาคใดก็ตาม) จะไม่แสดง</small></p>
+ <div><label for="pmty">1. เลือกประเภทวิชาที่จะเพิ่ม</label><select id="pmty" onchange="pmSet('at',this.value)"><option value="">— เลือกประเภทวิชา —</option>${CS_TY.map(([v,l])=>`<option value="${v}"${PM.at===v?' selected':''}>${l}</option>`).join('')}</select></div>
+ ${!tyOk?'<p><small>เลือกประเภทวิชาก่อน ระบบจึงจะแสดงรายวิชาจากคลังกลาง</small></p>':`<div><label for="pmq">2. ค้นหาในรายการ (รหัสวิชา ชื่อไทย ชื่ออังกฤษ)</label><input id="pmq" type="search" value="${E(PM.q)}" oninput="pmSet('q',this.value)" autocomplete="off"></div>
+ <p class="evm" role="status" aria-live="polite">${q?'พบ '+lib.length+' รายวิชาในคลังที่ยังไม่อยู่ในหลักสูตรนี้':'วิชาในคลังที่ยังไม่อยู่ในหลักสูตรนี้ '+lib.length+' รายวิชา'} · เลือกแล้ว ${sel} รายวิชา</p>
+ <p><button type="button" class="btn s"${shown.length?'':' disabled'} onclick="pmSelVis()">เลือกทั้งหมดที่แสดง</button> <button type="button" class="btn s"${sel?'':' disabled'} onclick="pmSelClr()">ล้างที่เลือก</button> <button type="button" class="btn b"${sel?'':' disabled'} onclick="pmAddSel()">เพิ่มที่เลือก ${sel} รายวิชา เป็น${E(tyL)}</button></p>
+ ${shown.map(e=>`<div class="row"><label><input type="checkbox" data-ck="${E(e.key)}"${PM.sel.has(e.key)?' checked':''} onchange="pmSelTog(this.dataset.ck,this.checked)" aria-label="เลือกวิชา ${E(e.code)}"> <b>${E(e.code)}</b> ${E(e.name)} <small>/ ${E(e.nameEn)} · ${E(e.credits)} หน่วยกิต · ใช้ใน ${e.uses.length} หลักสูตร</small></label> <button type="button" class="btn s b" data-k="${E(e.key)}" onclick="pmAdd(this.dataset.k)">เพิ่ม</button></div>`).join('')}${lib.length>shown.length?`<p><button type="button" class="btn s" onclick="pmSet('n',PM.n+20)">แสดงเพิ่ม (เหลืออีก ${lib.length-shown.length})</button></p>`:''}${!pool.length?'<p><small>ยังไม่มีรายวิชาอื่นในคลังกลางที่เพิ่มได้ (คลังคำนวณจากรายวิชาในแผนการศึกษาของทุกหลักสูตร) หากไม่พบวิชา ใช้ "สร้างรายวิชาใหม่" ด้านล่าง</small></p>':(!lib.length?'<p><small>ไม่พบรายวิชาที่ตรงกับคำค้น</small></p>':'')}`}`;
  return head+`<h2>${E(pmYn(y,yi))} › ${E(pmTn(t,ti))} <small>(${cs.length} วิชา${tot?' · '+(+tot.toFixed(2))+' หน่วยกิต':''})</small></h2>${rows}${add}${pmNw()}`}
-async function pmAdd(k){if(!DBH)return say(dbOff(),false);
+const pmAdd=k=>pmAddMany([k]);
+const pmAddSel=()=>pmAddMany([...PM.sel]);
+function pmSelTog(k,on){on?PM.sel.add(k):PM.sel.delete(k);render();const n=document.querySelector('[data-ck="'+String(k).replace(/["\\]/g,'\\$&')+'"]');if(n)n.focus()}
+function pmSelClr(){PM.sel.clear();render()}
+function pmSelVis(){const p=fqP().find(x=>x.id===PM.prog),have=new Set(fqCsAll(p&&p.plan).map(x=>cqNorm(x.c.code)).filter(Boolean)),q=PM.q.trim().toLowerCase();
+ [...cqIndex().values()].filter(e=>!have.has(e.key)&&(!q||cqHay(e).includes(q))).sort((a,b)=>a.key.localeCompare(b.key)).slice(0,PM.n).forEach(e=>PM.sel.add(e.key));render()}
+/* เพิ่มหลายวิชาครั้งเดียว: ตรวจทุกรายการกับข้อมูลล่าสุดก่อน ถ้ามีรายการใดเพิ่มไม่ได้จะไม่เขียนอะไรเลย แล้วบอกรหัสวิชาที่มีปัญหา */
+async function pmAddMany(keys){if(!DBH)return say(dbOff(),false);keys=[...new Set(keys)];if(!keys.length)return say('ยังไม่ได้เลือกรายวิชา',false);
  try{const P=await cqFresh(),p=P.find(x=>x.id===PM.prog),bad=m=>{SHR.programs=P;return say(m,false)};
   if(!p)return bad('ไม่พบหลักสูตรนี้ (อาจถูกลบโดยผู้ดูแลคนอื่น) โหลดข้อมูลล่าสุดแล้ว');
-  const e=cqIndex(P).get(k);if(!e)return bad('ไม่พบรายวิชานี้ในคลังแล้ว (อาจถูกเปลี่ยนรหัสหรือถูกนำออก) โหลดข้อมูลล่าสุดแล้ว');
-  if(fqCsAll(p.plan).some(({c})=>cqNorm(c.code)===k))return bad('หลักสูตรนี้มีรายวิชา '+e.code+' อยู่แล้ว');
-  if(!CS_TY.some(x=>x[0]===PM.ty))return bad('ประเภทวิชาไม่ถูกต้อง');
-  const se=cqScopeErr(e.scope,[...e.uses.map(u=>u.p),p]);if(se)return bad('เพิ่มวิชา '+e.code+' ไม่ได้: '+se);
+  if(!CS_TY.some(x=>x[0]===PM.at))return say('เลือกประเภทวิชาก่อนเพิ่มรายวิชา',false);
   const y=(p.plan||[]).find(x=>x&&x.id===PM.yr),t=y&&(y.terms||[]).find(x=>x&&x.id===PM.tm);
-  if(!t)return bad('ไม่พบชั้นปี/ภาคการศึกษาที่เลือก (อาจถูกแก้ไขโดยผู้ดูแลคนอื่น) โหลดข้อมูลล่าสุดแล้ว');
-  if(!Array.isArray(t.courses))t.courses=[];
-  t.courses.push({id:mkId('cs'),code:e.code,name:e.name,nameEn:e.nameEn,credits:e.credits,type:PM.ty,desc:e.desc,descEn:e.descEn,scope:e.scope||'',pre:[],show:true});
-  await putDoc('programs',P);say('เพิ่มรายวิชา '+e.code+' เข้าภาคการศึกษานี้เรียบร้อย')}catch(er){dbErr('บันทึกไม่สำเร็จ',er)}}
+  if(!t)return bad('ไม่พบชั้นปี/ภาคการศึกษาที่เลือก (อาจถูกแก้ไขโดยผู้ดูแลคนอื่น) ไม่มีข้อมูลถูกเปลี่ยน โหลดข้อมูลล่าสุดแล้ว');
+  const idx=cqIndex(P),have=new Set(fqCsAll(p.plan).map(x=>cqNorm(x.c.code)).filter(Boolean)),er=[],out=[];
+  keys.forEach((k,i)=>{const e=idx.get(k);if(!e)return er.push('ไม่พบวิชา '+k+' ในคลังแล้ว (อาจถูกเปลี่ยนรหัสหรือนำออก)');
+   if(have.has(k))return er.push('หลักสูตรนี้มีรายวิชา '+e.code+' อยู่แล้ว');
+   const se=cqScopeErr(e.scope,[...e.uses.map(u=>u.p),p]);if(se)return er.push('เพิ่มวิชา '+e.code+' ไม่ได้: '+se);
+   out.push({id:mkId('cs')+i.toString(36),code:e.code,name:e.name,nameEn:e.nameEn,credits:e.credits,type:PM.at,desc:e.desc,descEn:e.descEn,scope:e.scope||'',pre:[],show:true})});
+  if(er.length)return bad('ยังไม่ได้เพิ่ม ไม่มีข้อมูลถูกเปลี่ยน: '+er.slice(0,5).join(' / ')+(er.length>5?' และอีก '+(er.length-5)+' รายการ':''));
+  if(!Array.isArray(t.courses))t.courses=[];out.forEach(c=>t.courses.push(c));
+  await putDoc('programs',P);keys.forEach(k=>PM.sel.delete(k));
+  say('เพิ่ม '+out.length+' รายวิชา ('+out.map(c=>c.code).join(', ')+') เป็น'+(CS_TY.find(x=>x[0]===PM.at)[1])+' ใน '+(y.name||'ชั้นปี')+' › '+(t.name||'ภาคการศึกษา')+' เรียบร้อย')}catch(er){dbErr('บันทึกไม่สำเร็จ ไม่มีข้อมูลถูกเปลี่ยน',er)}}
 
 /* ===== เฟส 2: สร้างรายวิชาใหม่ (หลายแถว) เมื่อไม่พบในคลังกลาง แล้วนำเข้าภาคการศึกษาที่เลือกไว้ทันที
    ตรวจรหัสซ้ำ (ระหว่างแถว / ในหลักสูตร / ในคลังกลาง) ก่อนเขียน ถ้ามีในคลังแล้วเสนอ "ใช้วิชาเดิม" (คัดลอกข้อมูลกลางของวิชาเดิม ไม่สร้างซ้ำ ไม่เขียนทับ)
    บันทึกครั้งเดียว (all-or-nothing) ผ่าน cqFresh + putDoc('programs') ข้อมูลกลางของวิชา (รหัส ชื่อ หน่วยกิต) แยกจาก type/pre ซึ่งเป็นของหลักสูตรที่เลือก */
-const pmNwRow=()=>({id:mkId('nw')+Math.random().toString(36).slice(2,5),code:'',name:'',nameEn:'',credits:'',ty:PM.ty,use:''});
+const pmNwRow=()=>({id:mkId('nw')+Math.random().toString(36).slice(2,5),code:'',name:'',nameEn:'',credits:'',ty:PM.at||'required',use:''});
 const pmNwGet=id=>(PM.nw||[]).find(r=>r.id===id);
 function pmNwOpen(){PM.nw=[pmNwRow()];PM.nwE={};PM.nwC={};PM.nwG='';render()}
 function pmNwAdd(){if(!PM.nw)return;PM.nw.push(pmNwRow());render()}
