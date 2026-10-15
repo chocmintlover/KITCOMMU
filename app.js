@@ -474,21 +474,32 @@ async function pmAddMany(keys){if(!DBH)return say(dbOff(),false);keys=[...new Se
 /* ===== เฟส 2: สร้างรายวิชาใหม่ (หลายแถว) เมื่อไม่พบในคลังกลาง แล้วนำเข้าภาคการศึกษาที่เลือกไว้ทันที
    ตรวจรหัสซ้ำ (ระหว่างแถว / ในหลักสูตร / ในคลังกลาง) ก่อนเขียน ถ้ามีในคลังแล้วเสนอ "ใช้วิชาเดิม" (คัดลอกข้อมูลกลางของวิชาเดิม ไม่สร้างซ้ำ ไม่เขียนทับ)
    บันทึกครั้งเดียว (all-or-nothing) ผ่าน cqFresh + putDoc('programs') ข้อมูลกลางของวิชา (รหัส ชื่อ หน่วยกิต) แยกจาก type/pre ซึ่งเป็นของหลักสูตรที่เลือก */
-const pmNwRow=()=>({id:mkId('nw')+Math.random().toString(36).slice(2,5),code:'',name:'',nameEn:'',credits:'',ty:PM.at||'required',use:''});
+const pmNwRow=()=>({id:mkId('nw')+Math.random().toString(36).slice(2,5),code:'',name:'',nameEn:'',credits:'',ty:PM.at||'required',use:'',pre:[]});
 const pmNwGet=id=>(PM.nw||[]).find(r=>r.id===id);
 function pmNwOpen(){PM.nw=[pmNwRow()];PM.nwE={};PM.nwC={};PM.nwG='';render()}
 function pmNwAdd(){if(!PM.nw)return;PM.nw.push(pmNwRow());render()}
-function pmNwDel(id){if(!PM.nw)return;PM.nw=PM.nw.filter(r=>r.id!==id);delete PM.nwE[id];delete PM.nwC[id];if(!PM.nw.length)PM.nw=null;render()}
+function pmNwDel(id){if(!PM.nw)return;PM.nw=PM.nw.filter(r=>r.id!==id);PM.nw.forEach(r=>{r.pre=(r.pre||[]).filter(t=>t!==id)});delete PM.nwE[id];delete PM.nwC[id];if(!PM.nw.length)PM.nw=null;render()}
 function pmNwClose(){const d=(PM.nw||[]).some(r=>r.code||r.name||r.nameEn||r.credits);if(d&&!confirm('ปิดแบบฟอร์มและทิ้งข้อมูลที่กรอกไว้ใช่หรือไม่'))return;PM.nw=null;PM.nwE={};PM.nwC={};PM.nwG='';render()}
 function pmNwIn(id,f,v){const r=pmNwGet(id);if(!r)return;r[f]=v;if(f==='code'&&r.use)r.use='';delete PM.nwE[id];delete PM.nwC[id]}
+function pmNwPre(id,tok,on){const r=pmNwGet(id);if(!r)return;r.pre=(r.pre||[]).filter(t=>t!==tok);if(on)r.pre.push(tok);delete PM.nwE[id];const n=$(id+'_none');if(n)n.checked=!r.pre.length;pmNwCyc()}
+function pmNwPreNone(id){const r=pmNwGet(id);if(!r)return;r.pre=[];delete PM.nwE[id];document.querySelectorAll('#'+id+'_pl input').forEach(i=>{i.checked=false});const n=$(id+'_none');if(n)n.checked=true}
+function pmNwCyc(){const R=PM.nw||[];R.forEach(x=>{const ds=new Set(),q=[x.id];while(q.length){const k=q.pop();R.forEach(y=>{if((y.pre||[]).includes(k)&&!ds.has(y.id)){ds.add(y.id);q.push(y.id)}})}
+ document.querySelectorAll('#'+x.id+'_pl input[data-tok]').forEach(i=>{const lb=i.closest('label');if(lb)lb.dataset.cyc=ds.has(i.dataset.tok)?'1':''});const q2=$(x.id+'_pq');pmNwPq(x.id,q2?q2.value:'')})}
+function pmNwPq(id,v){v=String(v||'').trim().toLowerCase();const box=$(id+'_pl'),o=$(id+'_pn');if(!box||!o)return;let n=0;box.querySelectorAll('[data-t]').forEach(x=>{const h=x.dataset.cyc==='1'||(!!v&&!x.dataset.t.includes(v));x.style.display=h?'none':'';if(!h)n++});
+ if(!v){o.innerHTML='';return}
+ const p=fqP().find(x=>x.id===PM.prog),have=new Set(fqCsAll(p&&p.plan).map(x=>cqNorm(x.c.code)).filter(Boolean)),lib=[...cqIndex().values()].filter(e=>!have.has(e.key)&&cqHay(e).includes(v)).slice(0,5);
+ o.innerHTML=lib.length?`<div class="msg">พบในคลังกลางแต่ยังไม่อยู่ในหลักสูตรนี้: ${lib.map(e=>E(e.code+' '+e.name)).join(', ')} ต้องเพิ่มวิชานั้นเข้าหลักสูตรนี้ก่อน (ใช้ส่วน "เพิ่มรายวิชาจากคลังรายวิชากลาง") จึงจะเลือกเป็นวิชาบังคับก่อนได้</div>`:(!n?`<div class="msg er">ไม่พบวิชา "${E(v)}" ในระบบ กรุณาสร้างหรือเพิ่มวิชานั้นก่อน ระบบจะไม่สร้างข้อมูลอ้างอิงให้อัตโนมัติ</div>`:'')}
 function pmNwUse(id){const r=pmNwGet(id);if(!r||!PM.nwC[id])return;r.use=PM.nwC[id];delete PM.nwE[id];delete PM.nwC[id];render()}
 function pmNwUnuse(id){const r=pmNwGet(id);if(!r)return;r.use='';render()}
 function pmNw(){if(!PM.nw)return `<h2>ไม่พบวิชาในคลังกลาง?</h2><p><button type="button" class="btn" onclick="pmNwOpen()">+ สร้างรายวิชาใหม่</button></p>`;
- const idx=cqIndex(),R=PM.nw;
+ const idx=cqIndex(),R=PM.nw,pp=fqP().find(x=>x.id===PM.prog),pc=pp?fqCsAll(pp.plan):[];
+ const preUi=(r)=>{const ds=new Set(),q=[r.id];while(q.length){const k=q.pop();R.forEach(x=>{if((x.pre||[]).includes(k)&&!ds.has(x.id)){ds.add(x.id);q.push(x.id)}})}
+  const it=[...pc.filter(a=>a.c.code||a.c.name).map(a=>({tok:a.c.id,code:a.c.code,name:a.c.name,en:a.c.nameEn,w:pmYn(a.y,a.yi)+' › '+pmTn(a.t,a.ti)})),...R.map((x,j)=>({x,j})).filter(o=>o.x.id!==r.id&&!ds.has(o.x.id)).map(o=>{const e=o.x.use&&idx.get(o.x.use);return{tok:o.x.id,code:e?e.code:o.x.code,name:e?e.name:o.x.name,en:e?e.nameEn:o.x.nameEn,w:'รายวิชาใหม่ แถวที่ '+(o.j+1)}})];
+  return `<div class="pmpre"><label for="${r.id}_pq">วิชาบังคับก่อน (เฉพาะหลักสูตรนี้)</label><label><input type="checkbox" id="${r.id}_none"${(r.pre||[]).length?'':' checked'} onchange="pmNwPreNone('${r.id}')"> ไม่มีวิชาบังคับก่อน</label><input id="${r.id}_pq" type="search" placeholder="ค้นหารหัสหรือชื่อวิชา แล้วติ๊กเลือกได้หลายวิชา" oninput="pmNwPq('${r.id}',this.value)" autocomplete="off"><div id="${r.id}_pl" class="cqw" style="max-height:180px;overflow:auto">${it.length?it.map(o=>`<label class="row" data-t="${E(((o.code||'')+' '+(o.name||'')+' '+(o.en||'')).toLowerCase())}"><input type="checkbox" data-tok="${E(o.tok)}"${(r.pre||[]).includes(o.tok)?' checked':''} onchange="pmNwPre('${r.id}',this.dataset.tok,this.checked)"> <b>${E(o.code||'-')}</b> ${E(o.name)} <small>(${E(o.w)})</small></label>`).join(''):'<p><small>ยังไม่มีรายวิชาอื่นให้เลือก</small></p>'}</div><div id="${r.id}_pn" role="status" aria-live="polite"></div></div>`};
  const rows=R.map((r,i)=>{const e=r.use&&idx.get(r.use),er=PM.nwE[r.id],ty=`<div><label for="${r.id}_ty">ประเภทวิชาในหลักสูตรนี้</label><select id="${r.id}_ty" onchange="pmNwIn('${r.id}','ty',this.value)">${CS_TY.map(([v,l])=>`<option value="${v}"${r.ty===v?' selected':''}>${l}</option>`).join('')}</select></div>`;
   const body=e?`<div class="msg ok">ใช้วิชาเดิมจากคลังกลาง: <b>${E(e.code)}</b> ${E(e.name)} / ${E(e.nameEn)} · ${E(e.credits)} หน่วยกิต (จะไม่สร้างวิชาใหม่) <button type="button" class="btn s" onclick="pmNwUnuse('${r.id}')">ยกเลิก ใช้วิชาเดิม</button></div><div class="g2">${ty}</div>`
    :`<div class="g2"><div><label for="${r.id}_c">รหัสวิชา *</label><input id="${r.id}_c" value="${E(r.code)}" oninput="pmNwIn('${r.id}','code',this.value)" autocomplete="off"></div><div><label for="${r.id}_cr">หน่วยกิต * (เช่น 3 หรือ 3(3-0-6))</label><input id="${r.id}_cr" value="${E(r.credits)}" oninput="pmNwIn('${r.id}','credits',this.value)" autocomplete="off"></div><div><label for="${r.id}_n">ชื่อวิชาภาษาไทย *</label><input id="${r.id}_n" value="${E(r.name)}" oninput="pmNwIn('${r.id}','name',this.value)" autocomplete="off"></div><div><label for="${r.id}_en">ชื่อวิชาภาษาอังกฤษ *</label><input id="${r.id}_en" value="${E(r.nameEn)}" oninput="pmNwIn('${r.id}','nameEn',this.value)" autocomplete="off"></div>${ty}</div>`;
-  return `<fieldset class="fqfs"><legend>รายวิชาใหม่ แถวที่ ${i+1}</legend>${er?`<div class="msg er" role="alert">${E(er)}${PM.nwC[r.id]?` <button type="button" class="btn s b" onclick="pmNwUse('${r.id}')">ใช้วิชาเดิม</button>`:''}</div>`:''}${body}<p><button type="button" class="btn s c" onclick="pmNwDel('${r.id}')">ลบแถวนี้</button></p></fieldset>`}).join('');
+  return `<fieldset class="fqfs"><legend>รายวิชาใหม่ แถวที่ ${i+1}</legend>${er?`<div class="msg er" role="alert">${E(er)}${PM.nwC[r.id]?` <button type="button" class="btn s b" onclick="pmNwUse('${r.id}')">ใช้วิชาเดิม</button>`:''}</div>`:''}${body}${preUi(r)}<p><button type="button" class="btn s c" onclick="pmNwDel('${r.id}')">ลบแถวนี้</button></p></fieldset>`}).join('');
  return `<h2>สร้างรายวิชาใหม่</h2><p><small>ใช้เมื่อค้นหาในคลังกลางแล้วไม่พบ ระบบจะตรวจรหัสซ้ำก่อนบันทึก และเพิ่มวิชาเข้าภาคการศึกษาที่เลือกไว้ด้านบนทันที ข้อมูลทั้งหมดจะบันทึกพร้อมกัน หากมีแถวใดผิดพลาดจะยังไม่บันทึกเลย</small></p>${rows}
  ${PM.nwG?`<div class="msg er" role="alert">${E(PM.nwG)}</div>`:''}<p><button type="button" class="btn s" onclick="pmNwAdd()">+ เพิ่มแถว</button> <button type="button" class="btn b" onclick="pmNwSave()">บันทึกทั้งหมด (${R.length} รายการ)</button> <button type="button" class="btn" onclick="pmNwClose()">ยกเลิก</button></p>`}
 async function pmNwSave(){if(!DBH)return say(dbOff(),false);const R=PM.nw||[];if(!R.length)return;
@@ -497,7 +508,7 @@ async function pmNwSave(){if(!DBH)return say(dbOff(),false);const R=PM.nw||[];if
   if(!p)return fail('ไม่พบหลักสูตรนี้ (อาจถูกลบโดยผู้ดูแลคนอื่น) ไม่มีข้อมูลถูกเปลี่ยน');
   const y=(p.plan||[]).find(x=>x&&x.id===PM.yr),t=y&&(y.terms||[]).find(x=>x&&x.id===PM.tm);
   if(!t)return fail('ไม่พบชั้นปี/ภาคการศึกษาที่เลือก (อาจถูกแก้ไขโดยผู้ดูแลคนอื่น) ไม่มีข้อมูลถูกเปลี่ยน');
-  const idx=cqIndex(P),have=new Set(fqCsAll(p.plan).map(x=>cqNorm(x.c.code)).filter(Boolean)),seen=new Map(),E_={},C_={},out=[];
+  const idx=cqIndex(P),have=new Set(fqCsAll(p.plan).map(x=>cqNorm(x.c.code)).filter(Boolean)),seen=new Map(),E_={},C_={},out=[],nid=R.map((r,i)=>mkId('cs')+i.toString(36)),oMap={};
   R.forEach((r,i)=>{const f={code:String(r.code||'').trim(),name:String(r.name||'').trim(),nameEn:String(r.nameEn||'').trim(),credits:String(r.credits||'').trim()};let key,ex=null,er='';
    if(!CS_TY.some(x=>x[0]===r.ty))er='ประเภทวิชาไม่ถูกต้อง';
    if(!er&&r.use){key=r.use;ex=idx.get(key);if(!ex)er='วิชาเดิมนี้ไม่อยู่ในคลังกลางแล้ว (อาจถูกเปลี่ยนรหัสหรือนำออก) ให้ยกเลิก "ใช้วิชาเดิม" แล้วตรวจสอบใหม่'}
@@ -505,8 +516,20 @@ async function pmNwSave(){if(!DBH)return say(dbOff(),false);const R=PM.nw||[];if
    if(!er){if(seen.has(key))er='รหัสวิชา '+(ex?ex.code:f.code)+' ซ้ำกับแถวที่ '+(seen.get(key)+1)+' ในหน้านี้';else if(have.has(key))er='หลักสูตรนี้มีรายวิชา '+(ex?ex.code:f.code)+' อยู่แล้ว';else if(!ex&&idx.has(key)){const o=idx.get(key);er='รหัสวิชา '+f.code+' มีอยู่ในคลังกลางแล้ว: '+o.name+' · '+o.credits+' หน่วยกิต เลือก "ใช้วิชาเดิม" เพื่อไม่ให้สร้างซ้ำ หรือแก้รหัสวิชา';C_[r.id]=key}}
    if(!er&&ex){const se=cqScopeErr(ex.scope,[...ex.uses.map(u=>u.p),p]);if(se)er='เพิ่มวิชา '+ex.code+' ไม่ได้: '+se}
    if(!er)seen.set(key,i);
-   if(er)E_[r.id]=er;else out.push(ex?{id:mkId('cs')+i.toString(36),code:ex.code,name:ex.name,nameEn:ex.nameEn,credits:ex.credits,type:r.ty,desc:ex.desc,descEn:ex.descEn,scope:ex.scope||'',pre:[],show:true}
-    :{id:mkId('cs')+i.toString(36),code:f.code,name:f.name,nameEn:f.nameEn,credits:f.credits,type:r.ty,desc:'',descEn:'',scope:'',pre:[],show:true})});
+   if(er)E_[r.id]=er;else out.push(oMap[r.id]=ex?{id:nid[i],code:ex.code,name:ex.name,nameEn:ex.nameEn,credits:ex.credits,type:r.ty,desc:ex.desc,descEn:ex.descEn,scope:ex.scope||'',pre:[],show:true}
+    :{id:nid[i],code:f.code,name:f.name,nameEn:f.nameEn,credits:f.credits,type:r.ty,desc:'',descEn:'',scope:'',pre:[],show:true})});
+  /* วิชาบังคับก่อน (pre = id ของรายวิชาในหลักสูตรนี้ ตามโครงสร้างเดิม): ตรวจวิชาตัวเอง/ซ้ำ/ไม่มีอยู่จริง/วนซ้ำ ก่อนเขียน */
+  {const pids=new Set(fqCsAll(p.plan).map(a=>a.c.id)),pcode=new Map(fqCsAll(p.plan).map(a=>[a.c.id,cqNorm(a.c.code)])),rid=new Map(R.map((r,i)=>[r.id,i])),codeOf=r=>r.use||cqNorm(String(r.code||'').trim()),res={};
+   R.forEach((r,i)=>{if(E_[r.id])return;const toks=r.pre||[],seenT=new Set(),seenC=new Set(),ids=[];let er='';
+    for(const tk of toks){if(tk===r.id){er='เลือกรายวิชาตัวเองเป็นวิชาบังคับก่อนไม่ได้';break}
+     if(seenT.has(tk)){er='เลือกวิชาบังคับก่อนซ้ำ';break}seenT.add(tk);
+     let cd,nv;if(rid.has(tk)){const o=R[rid.get(tk)];if(E_[o.id]){er='วิชาบังคับก่อน (แถวที่ '+(rid.get(tk)+1)+') ยังมีข้อผิดพลาด กรุณาแก้ไขแถวนั้นก่อน';break}cd=codeOf(o);nv=nid[rid.get(tk)]}
+     else if(pids.has(tk)){cd=pcode.get(tk);nv=tk}else{er='วิชาบังคับก่อนที่เลือกไม่อยู่ในหลักสูตรนี้แล้ว (อาจถูกนำออกโดยผู้ดูแลคนอื่น) ให้สร้างหรือเพิ่มวิชานั้นก่อน แล้วเลือกใหม่';break}
+     if(cd){if(seenC.has(cd)){er='วิชาบังคับก่อนมีรหัสวิชาซ้ำกัน';break}seenC.add(cd)}ids.push(nv)}
+    if(er)E_[r.id]=er;else res[r.id]=ids});
+   const st={},cyc=id=>{if(st[id]===2)return false;if(st[id]===1)return true;st[id]=1;for(const tk of (R[rid.get(id)].pre||[])){if(rid.has(tk)&&cyc(tk))return true}st[id]=2;return false};
+   R.forEach((r,i)=>{if(!E_[r.id]&&cyc(r.id))E_[r.id]='วิชาบังคับก่อนวนซ้ำกับรายวิชาใหม่แถวอื่น (A ต้องเรียนก่อน B และ B ต้องเรียนก่อน A) กรุณาแก้ไข'});
+   R.forEach(r=>{if(!E_[r.id]&&oMap[r.id])oMap[r.id].pre=res[r.id]||[]})}
   const n=Object.keys(E_).length;if(n){PM.nwE=E_;PM.nwC=C_;return fail('พบข้อผิดพลาด '+n+' แถว ไม่มีข้อมูลถูกเปลี่ยน กรุณาแก้ไขตามข้อความในแต่ละแถวแล้วกดบันทึกอีกครั้ง')}
   if(!Array.isArray(t.courses))t.courses=[];out.forEach(c=>t.courses.push(c));
   await putDoc('programs',P);PM.nw=null;PM.nwE={};PM.nwC={};PM.nwG='';say('บันทึกสำเร็จ: เพิ่ม '+out.length+' รายวิชา ('+out.map(c=>c.code).join(', ')+') เข้า '+(y.name||'ชั้นปี')+' › '+(t.name||'ภาคการศึกษา')+' แล้ว');scrollTo(0,0)}
