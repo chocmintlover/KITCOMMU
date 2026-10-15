@@ -472,3 +472,23 @@ header .sndp{top:calc(100% + 8px)}
 .ty .fqh>div{flex:1 1 auto}
 .ty .fcg{grid-template-columns:repeat(auto-fill,minmax(max(min(100%,var(--ty-cw,270px)),calc((100% - (var(--cc) - 1)*20px)/var(--cc))),1fr))}
 .ty .fqpl{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(min(100%,var(--ty-cw,270px)),calc((100% - (var(--pc) - 1)*10px)/var(--pc))),1fr))}
+/* ===== ตั้งค่ารูปแบบรายหน้า (.pgs): ทำงานเฉพาะช่องที่ผู้ดูแลตั้งค่า (data-s) ที่เหลือคงหน้าตาเดิม ===== */
+.pgs[data-s~=ff]{font-family:var(--pg-ff)}
+.pgs[data-s~=ff] :is(h1,h2,h3,h4,p,li,.btn,input,select,textarea,button){font-family:inherit}
+.pgs[data-s~=ta]{text-align:var(--pg-ta)}
+.pgs[data-s~=ta] h1::after{margin-left:var(--pg-ml);margin-right:var(--pg-mr)}
+.pgs[data-s~=ta] .ev{text-align:var(--pg-ta)}
+.pgs[data-s~=ta] .lc:not(.scc){align-items:var(--pg-ai)}
+.pgs[data-s~=ta] .lc:not(.scc) .btn{align-self:var(--pg-ai)}
+.pgs[data-s~=h1] h1:not(.ty *){font-size:min(var(--pg-h1),9vw)}
+.pgs[data-s~=h2] h2:not(.ty *){font-size:min(var(--pg-h2),6.8vw)}
+.pgs[data-s~=h3] h3:not(.ty *){font-size:min(var(--pg-h3),5.6vw)}
+.pgs[data-s~=hw] :is(h1,h2,h3):not(.ty *){font-weight:var(--pg-hw)}
+.pgs[data-s~=b]{font-size:var(--pg-b)}
+.pgs[data-s~=b] :is(.lc p,.card .p p){font-size:calc(var(--pg-b)*.92)}
+.pgs[data-s~=bw]{font-weight:var(--pg-bw)}
+.pgs:is([data-s~=cw],[data-s~=cc],[data-s~=gap]) :is(.grid,.lcg):not(.ty *){gap:var(--pg-gap,16px);grid-template-columns:repeat(auto-fill,minmax(max(min(100%,var(--pg-cw,250px)),calc((100% - (var(--pg-cc,8) - 1)*var(--pg-gap,16px))/var(--pg-cc,8))),1fr))}
+.pgs[data-s~=gap] .evl{gap:var(--pg-gap)}
+.pgs[data-s~=cc] .evl{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(min(100%,var(--pg-cw,250px)),calc((100% - (var(--pg-cc) - 1)*var(--pg-gap,10px))/var(--pg-cc))),1fr))}
+.pgs[data-s~=sp]>*{margin-top:0;margin-bottom:0}
+.pgs[data-s~=sp]>*+*{margin-top:var(--pg-sp)}
