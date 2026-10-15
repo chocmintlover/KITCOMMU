@@ -419,9 +419,9 @@ function cqPgDel(cid){$('md').innerHTML='';cqPgRun((P,p)=>{const x=fqCsAll(p.pla
    ใช้ข้อมูลเดิม programs[].plan[].terms[].courses[] ไม่เพิ่ม field/ตารางใหม่ และเรียกใช้ cqIndex/cqFresh/putDoc/cqScopeErr ของเดิม
    ประเภทวิชา (type) และวิชาบังคับก่อน (pre) อยู่ในรายวิชาของแต่ละหลักสูตรเหมือนเดิม การเพิ่มวิชาเขียนเฉพาะหลักสูตรที่เลือก
    ยังไม่รวม: สร้างวิชาใหม่ที่ไม่มีในคลัง, เพิ่มหลายแถวพร้อมกัน (เฟสถัดไป) */
-const PM={fac:'',maj:'',prog:'',yr:'',tm:'',q:'',at:'',sel:new Set(),n:20,nw:null,nwE:{},nwC:{},nwG:''};
+const PM={fac:'',maj:'',prog:'',yr:'',tm:'',q:'',at:'',sel:new Set(),n:20,ed:null,nw:null,nwE:{},nwC:{},nwG:''};
 const pmYn=(y,i)=>y.name||'ชั้นปีที่ '+(i+1),pmTn=(t,i)=>t.name||'ภาคการศึกษาที่ '+(i+1),pmNm=(a,b)=>(a.nameTh||'').localeCompare(b.nameTh||'','th');
-function pmSet(k,v){PM[k]=v;if(k==='q')PM.n=20;const o=['fac','maj','prog','yr','tm'],i=o.indexOf(k);if(i>=0){o.slice(i+1).forEach(x=>PM[x]='');PM.q='';PM.n=20;PM.sel.clear();PM.nw=null;PM.nwE={};PM.nwC={};PM.nwG=''}
+function pmSet(k,v){PM[k]=v;if(k==='q')PM.n=20;const o=['fac','maj','prog','yr','tm'],i=o.indexOf(k);if(i>=0){o.slice(i+1).forEach(x=>PM[x]='');PM.q='';PM.n=20;PM.sel.clear();PM.ed=null;PM.nw=null;PM.nwE={};PM.nwC={};PM.nwG=''}
  const a=document.activeElement,s=a&&a.id==='pmq'?a.selectionStart:null;render();if(s!=null){const n=$('pmq');if(n){n.focus();try{n.setSelectionRange(s,s)}catch(e){}}}}
 function pmView(){const F=fqF().slice().sort(pmNm),M=fqM(),P=fqP(),mo=M.filter(m=>m.facultyId===PM.fac).sort(pmNm);
  if(!F.some(f=>f.id===PM.fac))PM.fac='';
@@ -438,7 +438,7 @@ function pmView(){const F=fqF().slice().sort(pmNm),M=fqM(),P=fqP(),mo=M.filter(m
  if(!t)return head+'<p><small>เลือกให้ครบทั้ง 5 ช่อง ระบบจะแสดงรายวิชาในภาคการศึกษาที่เลือก</small></p>';
  const yi=yo.indexOf(y),ti=to.indexOf(t),cs=(t.courses||[]).filter(Boolean),all=fqCsAll(p.plan),byId=new Map(all.map(x=>[x.c.id,x.c])),have=new Set(all.map(x=>cqNorm(x.c.code)).filter(Boolean)),
  tot=cs.reduce((s,c)=>s+crN(c.credits),0),
- rows=cs.length?`<div class="cqw"><table class="cqt"><thead><tr><th>รหัสวิชา</th><th>ชื่อวิชา</th><th>หน่วยกิต</th><th>ประเภทวิชา</th><th>วิชาบังคับก่อน</th><th>จัดการ</th></tr></thead><tbody>${cs.map(c=>{const pr=(c.pre||[]).map(id=>byId.get(id)).filter(Boolean).map(x=>x.code||x.name);return `<tr><td data-l="รหัสวิชา"><b>${E(c.code)}</b></td><td data-l="ชื่อวิชา">${E(c.name)}<br><small>${E(c.nameEn)}</small>${c.show===false?' <span class="tag">ซ่อนอยู่</span>':''}</td><td data-l="หน่วยกิต">${E(c.credits)}</td><td data-l="ประเภท">${E((CS_TY.find(x=>x[0]===csTyK(c.type))||[,''])[1])}</td><td data-l="บังคับก่อน">${pr.length?E(pr.join(', ')):'-'}</td><td data-l="จัดการ"><button type="button" class="btn s c" onclick="pmDelAsk('${E(c.id)}')" aria-label="นำรายวิชา ${E(c.code)} ออกจากภาคนี้">นำออก</button></td></tr>`}).join('')}</tbody></table></div>`:'<p><small>ยังไม่มีรายวิชาในภาคการศึกษานี้</small></p>',
+ rows=cs.length?`<div class="cqw"><table class="cqt"><thead><tr><th>รหัสวิชา</th><th>ชื่อวิชา</th><th>หน่วยกิต</th><th>ประเภทวิชา</th><th>วิชาบังคับก่อน</th><th>จัดการ</th></tr></thead><tbody>${cs.map(c=>{const pr=(c.pre||[]).map(id=>byId.get(id)).filter(Boolean).map(x=>x.code||x.name);return `<tr><td data-l="รหัสวิชา"><b>${E(c.code)}</b></td><td data-l="ชื่อวิชา">${E(c.name)}<br><small>${E(c.nameEn)}</small>${c.show===false?' <span class="tag">ซ่อนอยู่</span>':''}</td><td data-l="หน่วยกิต">${E(c.credits)}</td><td data-l="ประเภท">${E((CS_TY.find(x=>x[0]===csTyK(c.type))||[,''])[1])}</td><td data-l="บังคับก่อน">${pr.length?E(pr.join(', ')):'-'}</td><td data-l="จัดการ"><button type="button" class="btn s" onclick="pmEdOpen('${E(c.id)}')" aria-label="แก้ไขรายวิชา ${E(c.code)}">แก้ไข</button> <button type="button" class="btn s c" onclick="pmDelAsk('${E(c.id)}')" aria-label="นำรายวิชา ${E(c.code)} ออกจากภาคนี้">นำออก</button></td></tr>`}).join('')}</tbody></table></div>`:'<p><small>ยังไม่มีรายวิชาในภาคการศึกษานี้</small></p>',
  q=PM.q.trim().toLowerCase(),pool=[...cqIndex().values()].filter(e=>!have.has(e.key)),lib=pool.filter(e=>!q||cqHay(e).includes(q)).sort((a,b)=>a.key.localeCompare(b.key)),
  pk=new Set(pool.map(e=>e.key)),tyOk=CS_TY.some(x=>x[0]===PM.at),tyL=(CS_TY.find(x=>x[0]===PM.at)||[,''])[1],sel=(PM.sel=new Set([...PM.sel].filter(k=>pk.has(k)))).size,shown=lib.slice(0,PM.n),
  add=`<h2>เพิ่มรายวิชาจากคลังรายวิชากลาง</h2><p><small>เลือกประเภทวิชาก่อน แล้วเลือกวิชาจากคลังกลางได้หลายรายการ ระบบคัดลอกข้อมูลวิชา (รหัส ชื่อ หน่วยกิต คำอธิบาย) เข้าภาคนี้ทันที ประเภทวิชาที่เลือกใช้กับหลักสูตรนี้เท่านั้น ไม่เปลี่ยนประเภทของวิชานี้ในหลักสูตรอื่น วิชาที่มีอยู่ในหลักสูตรนี้แล้ว (ภาคใดก็ตาม) จะไม่แสดง</small></p>
@@ -447,7 +447,7 @@ function pmView(){const F=fqF().slice().sort(pmNm),M=fqM(),P=fqP(),mo=M.filter(m
  <p class="evm" role="status" aria-live="polite">${q?'พบ '+lib.length+' รายวิชาในคลังที่ยังไม่อยู่ในหลักสูตรนี้':'วิชาในคลังที่ยังไม่อยู่ในหลักสูตรนี้ '+lib.length+' รายวิชา'} · เลือกแล้ว ${sel} รายวิชา</p>
  <p><button type="button" class="btn s"${shown.length?'':' disabled'} onclick="pmSelVis()">เลือกทั้งหมดที่แสดง</button> <button type="button" class="btn s"${sel?'':' disabled'} onclick="pmSelClr()">ล้างที่เลือก</button> <button type="button" class="btn b"${sel?'':' disabled'} onclick="pmAddSel()">เพิ่มที่เลือก ${sel} รายวิชา เป็น${E(tyL)}</button></p>
  ${shown.map(e=>`<div class="row"><label><input type="checkbox" data-ck="${E(e.key)}"${PM.sel.has(e.key)?' checked':''} onchange="pmSelTog(this.dataset.ck,this.checked)" aria-label="เลือกวิชา ${E(e.code)}"> <b>${E(e.code)}</b> ${E(e.name)} <small>/ ${E(e.nameEn)} · ${E(e.credits)} หน่วยกิต · ใช้ใน ${e.uses.length} หลักสูตร</small></label> <button type="button" class="btn s b" data-k="${E(e.key)}" onclick="pmAdd(this.dataset.k)">เพิ่ม</button></div>`).join('')}${lib.length>shown.length?`<p><button type="button" class="btn s" onclick="pmSet('n',PM.n+20)">แสดงเพิ่ม (เหลืออีก ${lib.length-shown.length})</button></p>`:''}${!pool.length?'<p><small>ยังไม่มีรายวิชาอื่นในคลังกลางที่เพิ่มได้ (คลังคำนวณจากรายวิชาในแผนการศึกษาของทุกหลักสูตร) หากไม่พบวิชา ใช้ "สร้างรายวิชาใหม่" ด้านล่าง</small></p>':(!lib.length?'<p><small>ไม่พบรายวิชาที่ตรงกับคำค้น</small></p>':'')}`}`;
- return head+`<h2>${E(pmYn(y,yi))} › ${E(pmTn(t,ti))} <small>(${cs.length} วิชา${tot?' · '+(+tot.toFixed(2))+' หน่วยกิต':''})</small></h2>${rows}${add}${pmNw()}`}
+ return head+`<h2>${E(pmYn(y,yi))} › ${E(pmTn(t,ti))} <small>(${cs.length} วิชา${tot?' · '+(+tot.toFixed(2))+' หน่วยกิต':''})</small></h2>${rows}${pmEd()}${add}${pmNw()}`}
 const pmAdd=k=>pmAddMany([k]);
 const pmAddSel=()=>pmAddMany([...PM.sel]);
 function pmSelTog(k,on){on?PM.sel.add(k):PM.sel.delete(k);render();const n=document.querySelector('[data-ck="'+String(k).replace(/["\\]/g,'\\$&')+'"]');if(n)n.focus()}
@@ -531,6 +531,68 @@ async function pmDel(cid){$('md').innerHTML='';if(!DBH)return say(dbOff(),false)
   t.courses=t.courses.filter(a=>a&&a.id!==cid);fqPurgePre(p.plan,[cid]);
   await putDoc('programs',P);say('นำรายวิชา '+c.code+' ออกจาก '+(y.name||'ชั้นปี')+' › '+(t.name||'ภาคการศึกษา')+' เรียบร้อย (ข้อมูลวิชาในคลังกลางและหลักสูตรอื่นไม่เปลี่ยน)')}
  catch(er){dbErr('นำรายวิชาออกไม่สำเร็จ ไม่มีข้อมูลถูกเปลี่ยน',er)}}
+
+/* ===== เฟส 5: แก้ไขรายวิชาจากตารางในภาคที่เลือก — แยก 2 ส่วนชัดเจน =====
+   (ก) ข้อมูลกลาง (CQ_F: code/name/nameEn/credits/desc/descEn/scope) เขียนทุกหลักสูตรที่ใช้รหัสเดียวกัน ตรรกะเดียวกับ cqSave ของหน้า "ค้นหารายวิชา" (ตรวจ snapshot ป้องกันทับ, ตรวจรหัสซ้ำ, ตรวจขอบเขตการใช้วิชา)
+       แยกเป็นฟังก์ชันของหน้านี้เพราะ cqSave อ่านฟอร์ม cqf/WC.cq และเปลี่ยน hash ไปหน้าเดิมเมื่อแก้รหัส จึงเรียกซ้ำตรง ๆ ไม่ได้
+   (ข) เฉพาะหลักสูตรนี้ (type, pre) เขียนเฉพาะรายวิชานี้ในหลักสูตรที่เลือก ไม่แตะหลักสูตรอื่น */
+const pmEdSnap=(P,k)=>{const o={};P.forEach(p=>fqCsAll(p.plan).forEach(({c})=>{if(cqNorm(c.code)===k)o[c.id]=JSON.stringify(CQ_F.map(x=>String(c[x]||'')))}));return o};
+const pmEdPs=c=>JSON.stringify({t:c.type||'',p:[...(c.pre||[])].sort()});
+function pmEdOpen(cid){const p=fqP().find(x=>x.id===PM.prog),y=p&&(p.plan||[]).find(a=>a&&a.id===PM.yr),t=y&&(y.terms||[]).find(a=>a&&a.id===PM.tm),c=t&&(t.courses||[]).find(a=>a&&a.id===cid);
+ if(!c)return say('ไม่พบรายวิชานี้ในภาคที่เลือกแล้ว (อาจถูกแก้ไขโดยผู้ดูแลคนอื่น)',false);
+ const k=cqNorm(c.code),e=k?cqIndex().get(k):null;
+ PM.ed={cid,key:k,f:e?cqPick(e):null,snap:e?pmEdSnap(fqP(),k):null,ty:csTyK(c.type),pre:new Set(c.pre||[]),ps0:pmEdPs(c),mC:null,mP:null};
+ render();const n=$('pmed');if(n){n.scrollIntoView({block:'start'});const i=n.querySelector('input,select');if(i)i.focus()}}
+function pmEdClose(){PM.ed=null;render()}
+function pmEdIn(f,v){if(PM.ed&&PM.ed.f)PM.ed.f[f]=v}
+function pmEdPre(id,on){if(!PM.ed)return;on?PM.ed.pre.add(id):PM.ed.pre.delete(id)}
+function pmEdPq(v){v=String(v||'').trim().toLowerCase();document.querySelectorAll('#pmed [data-t]').forEach(n=>{n.style.display=v&&!n.dataset.t.includes(v)?'none':''})}
+function pmEd(){const w=PM.ed;if(!w)return '';const p=fqP().find(x=>x.id===PM.prog),all=p?fqCsAll(p.plan):[],me=all.find(a=>a.c.id===w.cid);
+ if(!me){PM.ed=null;return ''}
+ const c=me.c,e=w.key?cqIndex().get(w.key):null,n=e?e.uses.length:0,f=w.f,msg=m=>m?`<div class="msg ${m.ok?'ok':'er'}" role="alert">${E(m.t)}</div>`:'',
+ fi=(k,l,req,ph)=>`<div><label for="pme_${k}">${l}${req?' *':''}</label><input id="pme_${k}" value="${E(f[k])}" oninput="pmEdIn('${k}',this.value)"${ph?` placeholder="${ph}"`:''} autocomplete="off"></div>`,
+ ta=(k,l)=>`<div><label for="pme_${k}">${l}</label><textarea id="pme_${k}" rows="3" oninput="pmEdIn('${k}',this.value)">${E(f[k])}</textarea></div>`;
+ const central=f&&e?`<fieldset class="fqfs"><legend>ข้อมูลกลางของรายวิชา (มีผลกับทุกหลักสูตรที่ใช้รหัสเดียวกัน)</legend>
+  <div class="msg">การบันทึกส่วนนี้จะเปลี่ยนข้อมูลของรหัสวิชา <b>${E(e.code)}</b> ในทุกหลักสูตรที่ใช้รหัสนี้ ปัจจุบัน <b>${n}</b> หลักสูตร${n>1?': '+E(e.uses.slice(0,5).map(u=>u.p.nameTh).join(', '))+(n>5?' และอีก '+(n-5)+' หลักสูตร':''):' (หลักสูตรนี้เท่านั้น)'} ไม่เปลี่ยนประเภทวิชา วิชาบังคับก่อน หรือการซ่อน/แสดงของแต่ละหลักสูตร</div>${e.mixed?'<div class="msg">ข้อมูลของวิชานี้ในแต่ละหลักสูตรยังไม่ตรงกัน เมื่อบันทึกจะทำให้ทุกหลักสูตรใช้ค่าตามที่แสดงด้านล่าง</div>':''}
+  <div class="g2">${fi('code','รหัสวิชา',1)}${fi('credits','หน่วยกิต',1,'3 หรือ 3(3-0-6)')}${fi('name','ชื่อวิชาภาษาไทย',1)}${fi('nameEn','ชื่อวิชาภาษาอังกฤษ',1)}${ta('desc','คำอธิบายรายวิชา (ไทย)')}${ta('descEn','คำอธิบายรายวิชา (English)')}
+  <div><label for="pme_scope">ขอบเขตการใช้วิชา</label><select id="pme_scope" onchange="pmEdIn('scope',this.value)"><option value=""${f.scope?'':' selected'}>ยังไม่กำหนด</option>${CQ_SC.map(([v,l])=>`<option value="${v}"${f.scope===v?' selected':''}>${l}</option>`).join('')}</select></div></div>
+  ${msg(w.mC)}<p><button type="button" class="btn b" onclick="pmEdSaveC()">บันทึกข้อมูลกลาง (กระทบ ${n} หลักสูตร)</button></p></fieldset>`
+  :`<div class="msg er">รายวิชานี้ยังไม่มีรหัสวิชา จึงยังไม่อยู่ในคลังกลางและแก้ข้อมูลกลางจากหน้านี้ไม่ได้ กรุณากำหนดรหัสที่ <a href="#/admin/programs/edit/${E(p.id)}">หน้าแก้ไขหลักสูตร</a></div>`;
+ const dep=fqDepsAll(p.plan,w.cid),cand=all.filter(a=>a.c.id!==w.cid&&!dep.has(a.c.id)&&(a.c.code||a.c.name||a.c.nameEn));
+ const prog=`<fieldset class="fqfs"><legend>เฉพาะหลักสูตรนี้: ${E(p.nameTh)}</legend><div class="msg">ส่วนนี้บันทึกเฉพาะรายวิชานี้ในหลักสูตรที่กำลังจัดการ ไม่กระทบหลักสูตรอื่นที่ใช้รหัสเดียวกัน</div>
+  <label for="pme_ty">ประเภทวิชา</label><select id="pme_ty" onchange="PM.ed.ty=this.value">${CS_TY.map(([v,l])=>`<option value="${v}"${w.ty===v?' selected':''}>${l}</option>`).join('')}</select>
+  <label for="pme_pq">วิชาบังคับก่อน (ติ๊กได้หลายวิชา เลือกจากรายวิชาอื่นในหลักสูตรนี้)</label><input id="pme_pq" type="search" placeholder="ค้นหารหัสหรือชื่อวิชา" oninput="pmEdPq(this.value)" autocomplete="off">
+  <div class="cqw" style="max-height:220px;overflow:auto">${cand.length?cand.map(a=>`<label class="row" data-t="${E((a.c.code+' '+a.c.name+' '+a.c.nameEn).toLowerCase())}"><input type="checkbox"${w.pre.has(a.c.id)?' checked':''} onchange="pmEdPre('${E(a.c.id)}',this.checked)"> <b>${E(a.c.code)}</b> ${E(a.c.name)} <small>(${E(pmYn(a.y,a.yi))} › ${E(pmTn(a.t,a.ti))})</small></label>`).join(''):'<p><small>ไม่มีรายวิชาอื่นให้เลือก</small></p>'}</div>
+  ${msg(w.mP)}<p><button type="button" class="btn b" onclick="pmEdSaveP()">บันทึกเฉพาะหลักสูตรนี้</button></p></fieldset>`;
+ return `<section id="pmed"><h2>แก้ไขรายวิชา: ${E(c.code)} ${E(c.name)}</h2>${central}${prog}<p><button type="button" class="btn" onclick="pmEdClose()">ปิดแบบฟอร์ม</button></p></section>`}
+async function pmEdSaveC(){const w=PM.ed;if(!w||!w.f)return;if(!DBH)return say(dbOff(),false);
+ const fail=m=>{w.mC={ok:false,t:m};say(m,false);return false},f={};CQ_F.forEach(x=>f[x]=String(w.f[x]||'').trim());
+ if(!f.code)return fail('ต้องระบุรหัสวิชา');if(!f.name)return fail('ต้องระบุชื่อวิชาภาษาไทย');if(!f.nameEn)return fail('ต้องระบุชื่อวิชาภาษาอังกฤษ');if(!f.credits)return fail('ต้องระบุจำนวนหน่วยกิต');
+ if(!cqRe.test(f.credits)||!(parseFloat(f.credits)>=0&&parseFloat(f.credits)<=30))return fail('หน่วยกิตไม่ถูกต้อง (ใช้ เช่น 3 หรือ 3(3-0-6) และไม่เกิน 30)');
+ try{const P=await cqFresh(),hit=[],hp=[],nk=cqNorm(f.code);
+  P.forEach(p=>fqCsAll(p.plan).forEach(({c})=>{if(cqNorm(c.code)===w.key){hit.push(c);hp.push(p)}}));
+  const cur=pmEdSnap(P,w.key),ids=Object.keys(w.snap),stale=ids.length!==hit.length||ids.some(i=>cur[i]!==w.snap[i]);
+  if(stale){SHR.programs=P;PM.ed=null;return say('รายวิชานี้ถูกผู้ดูแลคนอื่นแก้ไขหรือเปลี่ยนแปลงไปก่อนหน้า จึงยังไม่บันทึกทับ ระบบโหลดข้อมูลล่าสุดแล้ว กรุณากด "แก้ไข" เพื่อตรวจสอบและแก้ไขอีกครั้ง',false)}
+  {const se=cqScopeErr(f.scope,hp);if(se)return fail(se)}
+  if(nk!==w.key&&cqIndex(P).has(nk))return fail('รหัสวิชา "'+f.code+'" มีอยู่แล้วในคลังกลาง หากเป็นวิชาเดียวกัน ให้เพิ่มวิชานั้นจากคลังกลางแทน หรือใช้ "รวมรายวิชา" ที่หน้าค้นหารายวิชา ไม่สร้างรหัสซ้ำ');
+  const np=new Set(hp).size;if(np>1&&!confirm('การบันทึกจะเปลี่ยนข้อมูลกลางของรหัสวิชา '+w.key+' ในทุกหลักสูตรที่ใช้รหัสนี้ ('+np+' หลักสูตร) ดำเนินการต่อหรือไม่'))return;
+  hit.forEach(c=>CQ_F.forEach(x=>{c[x]=f[x]}));
+  await putDoc('programs',P);w.key=nk;w.snap=pmEdSnap(P,nk);CQ_F.forEach(x=>w.f[x]=f[x]);w.mC={ok:true,t:'บันทึกข้อมูลกลางเรียบร้อย อัปเดต '+np+' หลักสูตร'};
+  say('บันทึกข้อมูลกลางของ '+f.code+' เรียบร้อย อัปเดต '+np+' หลักสูตร')
+ }catch(er){w.mC={ok:false,t:'บันทึกไม่สำเร็จ ไม่มีข้อมูลถูกเปลี่ยน'};dbErr('บันทึกไม่สำเร็จ',er)}}
+async function pmEdSaveP(){const w=PM.ed;if(!w)return;if(!DBH)return say(dbOff(),false);
+ const fail=m=>{w.mP={ok:false,t:m};say(m,false);return false};
+ if(!CS_TY.some(x=>x[0]===w.ty))return fail('ประเภทวิชาไม่ถูกต้อง');
+ try{const P=await cqFresh(),p=P.find(x=>x.id===PM.prog);if(!p){SHR.programs=P;PM.ed=null;return say('ไม่พบหลักสูตรนี้ (อาจถูกลบโดยผู้ดูแลคนอื่น) ไม่มีข้อมูลถูกเปลี่ยน',false)}
+  const x=fqCsAll(p.plan).find(a=>a.c.id===w.cid);if(!x){SHR.programs=P;PM.ed=null;return say('ไม่พบรายวิชานี้ในหลักสูตรแล้ว (อาจถูกนำออกโดยผู้ดูแลคนอื่น) ไม่มีข้อมูลถูกเปลี่ยน โหลดข้อมูลล่าสุดแล้ว',false)}
+  if(pmEdPs(x.c)!==w.ps0){SHR.programs=P;PM.ed=null;return say('ประเภทวิชาหรือวิชาบังคับก่อนของรายวิชานี้ถูกผู้ดูแลคนอื่นแก้ไขไปก่อนหน้า จึงยังไม่บันทึกทับ ระบบโหลดข้อมูลล่าสุดแล้ว กรุณากด "แก้ไข" อีกครั้ง',false)}
+  const ids=new Set(fqCsAll(p.plan).map(a=>a.c.id)),dep=fqDepsAll(p.plan,w.cid),pre=[...w.pre];
+  if(pre.some(i=>i===w.cid||!ids.has(i)))return fail('วิชาบังคับก่อนที่เลือกไม่อยู่ในหลักสูตรนี้แล้ว กรุณาปิดแบบฟอร์มและเปิดใหม่');
+  if(pre.some(i=>dep.has(i)))return fail('เลือกไม่ได้: วิชาที่เลือกใช้วิชานี้เป็นวิชาบังคับก่อนอยู่แล้ว (จะวนซ้ำ)');
+  x.c.type=w.ty;x.c.pre=pre;
+  await putDoc('programs',P);w.ps0=pmEdPs(x.c);w.mP={ok:true,t:'บันทึกประเภทวิชาและวิชาบังคับก่อนของหลักสูตรนี้เรียบร้อย'};
+  say('บันทึกประเภทวิชาและวิชาบังคับก่อนของ '+x.c.code+' ในหลักสูตรนี้เรียบร้อย')
+ }catch(er){w.mP={ok:false,t:'บันทึกไม่สำเร็จ ไม่มีข้อมูลถูกเปลี่ยน'};dbErr('บันทึกไม่สำเร็จ',er)}}
 
 /* ===== Router ===== */
 
