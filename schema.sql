@@ -3,7 +3,7 @@
 
 -- 1) ตารางเก็บเนื้อหาเว็บไซต์: เมนู / หน้าเว็บ / กิจกรรมปฏิทิน / ตั้งค่า (+หน้าแรก)
 create table if not exists public.site_docs (
-  key        text primary key check (key in ('menu','pages','events','settings','campus','fgroups','faculties','majors','programs','people')),
+  key        text primary key check (key in ('menu','pages','events','settings','campus','fgroups','faculties','majors','programs','people','clubcats','clubs')),
   data       jsonb not null,
   updated_at timestamptz not null default now(),
   constraint site_docs_shape check (
@@ -14,7 +14,7 @@ create table if not exists public.site_docs (
 
 -- รองรับฐานข้อมูลที่สร้างไว้ก่อนมีแผนผังสถาบัน (key 'campus')
 alter table public.site_docs drop constraint if exists site_docs_key_check;
-alter table public.site_docs add  constraint site_docs_key_check check (key in ('menu','pages','events','settings','campus','fgroups','faculties','majors','programs','people'));
+alter table public.site_docs add  constraint site_docs_key_check check (key in ('menu','pages','events','settings','campus','fgroups','faculties','majors','programs','people','clubcats','clubs'));
 alter table public.site_docs drop constraint if exists site_docs_shape;
 alter table public.site_docs add  constraint site_docs_shape check (
   (key in ('settings','campus') and jsonb_typeof(data) = 'object') or
@@ -85,6 +85,8 @@ declare
   v_mj     jsonb;
   v_pg     jsonb;
   v_pp     jsonb;
+  v_cc     jsonb;
+  v_cl     jsonb;
 begin
   select coalesce(jsonb_agg(p.v order by p.n), '[]'::jsonb) into v_pages
   from jsonb_array_elements(coalesce((select data from public.site_docs where key = 'pages'), '[]'::jsonb)) with ordinality as p(v, n)
@@ -126,9 +128,13 @@ begin
   -- บุคลากรและทีมผู้บริหาร: ไม่มีต้นสังกัด ส่งเฉพาะแถวที่เผยแพร่
   v_pp := public._pub_rows('people', null, null);
 
+  -- ชมรมนักศึกษา: หมวดหมู่และชมรมที่เผยแพร่ (ชมรมไม่ผูกกับสถานะหมวด: ถ้าหมวดถูกซ่อน/ลบ ชมรมจะแสดงในกลุ่ม "ไม่ระบุหมวดหมู่")
+  v_cc := public._pub_rows('clubcats', null, null);
+  v_cl := public._pub_rows('clubs', null, null);
+
   return jsonb_build_object('menu', v_menu, 'pages', v_pages, 'events', v_events, 'settings', v_set, 'campus', v_campus,
                             'fgroups', v_fg, 'faculties', v_fa, 'majors', v_mj, 'programs', v_pg,
-                            'people', v_pp);
+                            'people', v_pp, 'clubcats', v_cc, 'clubs', v_cl);
 end;
 $$;
 revoke all on function public.get_public_site() from public;
