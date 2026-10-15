@@ -536,7 +536,7 @@ header .sndp{top:calc(100% + 8px)}
 .cll{padding-left:1.3em;margin:8px 0}.cll li{margin:4px 0;overflow-wrap:anywhere}
 .cll.clch{list-style:none;padding-left:0}
 
-/* ===== โพสต์คอมมูนิตี้ (ส่วนบนหน้าแรก + หน้ารวม #/community) — ใช้ตัวแปรสีกลางทั้งหมด รองรับโหมดมืด ===== */
+/* ===== โพสต์ (ส่วนบนหน้าแรก + หน้ารวม #/community) — ใช้ตัวแปรสีกลางทั้งหมด รองรับโหมดมืด ===== */
 .cps{margin:38px 0 10px}
 .cpt0{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px 18px;margin-bottom:14px}.cpt0 h2{margin:0}
 .sec a.cpall{display:inline-flex;align-items:center;gap:6px;font-weight:600;text-decoration:none}.sec a.cpall:hover{text-decoration:underline}
