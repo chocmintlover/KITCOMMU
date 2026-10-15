@@ -598,3 +598,29 @@ header .sndp{top:calc(100% + 8px)}
 .evca .btn{display:inline-flex;align-items:center;gap:6px}
 
 @media(prefers-reduced-motion:reduce){.sec a.nwc:not(.btn):not(.card){transition:none}.sec a.nwc:not(.btn):not(.card):hover{transform:none}}
+
+/* ===== KIT Loading Screen (แสดงครั้งเดียวตอนเปิดเว็บ; ตัวควบคุมอยู่ใน index.html) ===== */
+html.kld-on{overflow:hidden}
+#kit-loader{--kit-a:var(--fg);--kit-b:var(--gold);position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px;background:var(--bg);color:var(--fg);opacity:1;visibility:visible;transition:opacity .45s ease,visibility 0s linear .45s}
+#kit-loader.kld-out{opacity:0;visibility:hidden;pointer-events:none}
+.kld-box{position:relative;width:clamp(140px,34vw,180px);aspect-ratio:1;display:grid;place-items:center}
+.kld-ring{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.kld-ring circle{fill:none;stroke-width:2.2}
+.kld-track{stroke:var(--line);opacity:.45}
+.kld-arc{stroke:var(--gold-text);stroke-linecap:round;stroke-dasharray:96 244}
+.kld-spin{transform-origin:60px 60px;animation:kldSpin 1.5s cubic-bezier(.45,.1,.4,.9) infinite}
+.kld-mark{position:relative;width:52%;height:auto;display:block;animation:kldIn .7s cubic-bezier(.2,.7,.2,1) both,kldBreath 2.6s ease-in-out .7s infinite alternate}
+.kld-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.kld-more{min-height:92px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;max-width:340px;opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s linear .35s}
+.kld-t{margin:0;font-size:.95rem;color:var(--muted)}.kld-t2{display:none}
+.kld-b{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.kld-b button{font:inherit;font-size:.9rem;cursor:pointer;padding:8px 18px;border-radius:99px;border:1px solid var(--line);background:var(--btn-bg,var(--surface));color:var(--fg)}
+.kld-b button:hover{background:var(--hover)}.kld-b button:focus-visible{outline:2px solid var(--gold-text);outline-offset:2px}
+#kit-loader.kld-slow .kld-more,#kit-loader.kld-err .kld-more{opacity:1;visibility:visible;transition-delay:0s}
+#kit-loader.kld-err .kld-t1,#kit-loader.kld-err #kld-skip{display:none}#kit-loader.kld-err .kld-t2{display:block}
+#kit-loader.kld-err .kld-spin,#kit-loader.kld-err .kld-mark{animation:none}
+@keyframes kldSpin{to{transform:rotate(360deg)}}
+@keyframes kldIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+@keyframes kldBreath{from{opacity:.82}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.kld-spin,.kld-mark{animation:none}#kit-loader,.kld-more{transition-duration:.01s,0s}}
+@media print{#kit-loader{display:none}}

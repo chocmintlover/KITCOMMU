@@ -2,6 +2,9 @@
 /* ===== Auth hook (เดิม: ยังไม่มีหน้า login ฝั่งเว็บ การเขียนฐานข้อมูลถูกจำกัดโดยสิทธิ์เจ้าของ/ผู้แก้ไขของแพลตฟอร์ม) ===== */
 /* ===== Supabase client + Auth (ใช้เฉพาะ anon/publishable key; สิทธิ์เขียนควบคุมด้วย RLS ในฐานข้อมูล) ===== */
 const CFG=window.KIT_CONFIG||{};
+/* ===== Loading Screen: ตัวควบคุมอยู่ใน index.html (inline) ที่นี่แค่แจ้งว่า app.js เริ่มทำงาน และแจ้งเมื่อข้อมูลหน้าแรกพร้อม ===== */
+const KLD=window.KITLOADER||null;if(KLD)KLD.booted=true;
+const kldReady=()=>{try{if(KLD)KLD.ready()}catch(e){}};
 let SB=null;
 try{if(CFG.supabaseUrl&&CFG.supabaseAnonKey&&window.supabase)SB=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}})}catch(e){SB=null}
 const Auth={session:null,staff:false,email:'',canAccessAdmin(){return !!(this.session&&this.staff)}};
@@ -66,8 +69,9 @@ async function bootStaff(){const {data:{session}}=await SB.auth.getSession();Aut
  if(!session)return;const {data,error}=await SB.rpc('is_staff');if(error)throw error;Auth.staff=data===true;
  if(!Auth.staff)return;DBH=SB;CW=true;await loadAll();
  SB.channel('site_docs_rt').on('postgres_changes',{event:'*',schema:'public',table:'site_docs'},p=>{if(p.eventType==='DELETE'){if(p.old&&p.old.key)delete SHR[p.old.key]}else if(p.new&&p.new.key)SHR[p.new.key]=p.new.data;liveRender()}).subscribe()}
-async function initDb(){if(!SB){DBS='noconfig';render();return}
- try{await bootStaff();if(!Auth.staff)await loadPublic();DBS='ok'}catch(e){DBS='error';console.error('Supabase:',e)}render()}
+async function initDb(){if(!SB){DBS='noconfig';try{render()}finally{kldReady()}return}
+ try{await bootStaff();if(!Auth.staff)await loadPublic();DBS='ok'}catch(e){DBS='error';console.error('Supabase:',e)}
+ try{render()}finally{kldReady()}}
 /* ===== หน้าเข้าสู่ระบบทีมงาน ===== */
 function loginView(){let b;
  if(!SB)b=`<div class="msg er">${E(dbOff())}</div>`;
