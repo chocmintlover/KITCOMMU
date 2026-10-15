@@ -454,3 +454,13 @@ header .sndp{top:calc(100% + 8px)}
 @media(min-width:901px) and (max-width:1279px){header .ln{display:none}header .kit{height:34px}}
 @media(min-width:901px){.links{flex-wrap:wrap;row-gap:0}}
 @media(min-width:901px) and (max-width:990px){.links>a,.ddb{padding:10px 8px;font-size:.86rem}.links>a::after,.ddb::before{left:8px;right:8px}.hw nav{gap:8px}}
+
+/* ===== หน้ารายวิชาทั้งหมด (ผู้เข้าชม): ตัวกรอง ใช้ตาราง .pvt และการ์ด .fqpr เดิม ===== */
+.fq .crf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 12px;margin:4px 0 12px}
+.fq .crf select{width:100%;min-width:0}
+.fq .crf label{margin-top:6px}
+.crt a{color:var(--fg);text-decoration-color:var(--gold);text-underline-offset:3px}.crt a:hover{color:var(--gold-text)}
+.crt a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.pvpc[href]{text-decoration:none;color:var(--fg)}.pvpc[href]:hover{border-color:var(--gold)}
+@media(max-width:760px){.fq .crf{grid-template-columns:1fr}}
+@media(min-width:641px){.crt th:nth-child(5),.crt td:nth-child(5){min-width:15em}.crt th:nth-child(3),.crt td:nth-child(3){min-width:11em}}
