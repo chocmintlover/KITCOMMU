@@ -464,3 +464,11 @@ header .sndp{top:calc(100% + 8px)}
 .pvpc[href]{text-decoration:none;color:var(--fg)}.pvpc[href]:hover{border-color:var(--gold)}
 @media(max-width:760px){.fq .crf{grid-template-columns:1fr}}
 @media(min-width:641px){.crt th:nth-child(5),.crt td:nth-child(5){min-width:15em}.crt th:nth-child(3),.crt td:nth-child(3){min-width:11em}}
+/* ===== ตั้งค่าตัวอักษร: ฟอนต์ การจัดแนว และการจัดวางการ์ด (ค่าจาก --ty-*; ค่าเริ่มต้น = หน้าตาเดิม) ===== */
+.ty{--cc:var(--ty-cc,4);--pc:var(--ty-pc,1);font-family:var(--ty-ff,inherit);text-align:var(--ty-ta,inherit)}
+.ty h1,.ty h2,.ty h3,.ty h4{font-family:inherit}
+.ty h1::after{margin-left:var(--ty-ml,0);margin-right:var(--ty-mr,auto)}
+.ty .fqh{justify-content:var(--ty-jc,flex-start)}
+.ty .fqh>div{flex:1 1 auto}
+.ty .fcg{grid-template-columns:repeat(auto-fill,minmax(max(min(100%,var(--ty-cw,270px)),calc((100% - (var(--cc) - 1)*20px)/var(--cc))),1fr))}
+.ty .fqpl{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(min(100%,var(--ty-cw,270px)),calc((100% - (var(--pc) - 1)*10px)/var(--pc))),1fr))}
