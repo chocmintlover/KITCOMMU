@@ -492,3 +492,34 @@ header .sndp{top:calc(100% + 8px)}
 .pgs[data-s~=cc] .evl{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(min(100%,var(--pg-cw,250px)),calc((100% - (var(--pg-cc) - 1)*var(--pg-gap,10px))/var(--pg-cc))),1fr))}
 .pgs[data-s~=sp]>*{margin-top:0;margin-bottom:0}
 .pgs[data-s~=sp]>*+*{margin-top:var(--pg-sp)}
+
+/* ===== หน้า: จัดแนวหัวข้อ/รายละเอียดแยกกัน (เสริมชุด .pgs) ===== */
+.pgs[data-s~=hta] :where(h1,h2,h3,h4){text-align:var(--pg-hta)}
+.pgs[data-s~=hta] h1::after{margin-left:var(--pg-hml);margin-right:var(--pg-hmr)}
+.pgs[data-s~=bta] :where(p,li,.pl,.lc p,.card .p p){text-align:var(--pg-bta)}
+
+/* ===== จัดวางรายองค์ประกอบ: กลุ่ม .sg / ส่วน .se / การ์ด .ce =====
+   ทำงานเฉพาะองค์ประกอบที่มี data-e (ผู้ดูแลตั้งค่า) ตัวแปร --e-* สืบทอดจากตัวครอบที่ใกล้ที่สุด จึงไม่รบกวนส่วนอื่น
+   ต้องอยู่หลังชุด .pgs เพื่อให้ค่าระดับองค์ประกอบชนะค่าระดับหน้า */
+.sg[data-e~=ba],.se[data-e~=ba]{margin-left:var(--e-ml);margin-right:var(--e-mr)}
+.sg[data-e~=w],.se[data-e~=w]{width:100%;max-width:var(--e-w)}
+.sg[data-e~=fit],.se[data-e~=fit]{width:fit-content;max-width:100%}
+.sg[data-e~=sp],.se[data-e~=sp]{margin-top:var(--e-sp);margin-bottom:var(--e-sp)}
+.se[data-e~=ba]>img{display:block;margin-left:var(--e-ml);margin-right:var(--e-mr)}
+:is(.sg,.se,.ce)[data-e~=eh] :where(h1,h2,h3,h4){text-align:var(--e-h)}
+:is(.sg,.se,.ce)[data-e~=eb] :where(p,li,.pl,.lc p,.card .p p){text-align:var(--e-b)}
+:is(.sg,.se):is([data-e~=eh],[data-e~=eb]) .lc:not(.scc),.lc.ce:is([data-e~=eh],[data-e~=eb]):not(.scc){align-items:stretch}
+:is(.sg,.se,.ce)[data-e~=eb] .lc:not(.scc) .btn,.lc.ce[data-e~=eb]:not(.scc) .btn{align-self:var(--e-bai)}
+:is(.sg,.se,.ce)[data-e~=hfs] :is(h1,h2,h3):not(.ty *){font-size:min(var(--e-hfs),8vw)}
+:is(.sg,.se,.ce)[data-e~=hfw] :is(h1,h2,h3):not(.ty *){font-weight:var(--e-hfw)}
+:is(.sg,.se,.ce)[data-e~=hff] :is(h1,h2,h3,h4):not(.ty *){font-family:var(--e-hff)}
+:is(.sg,.se,.ce)[data-e~=bfs] :is(p,li,.pl,.lc p,.card .p p){font-size:var(--e-bfs)}
+:is(.sg,.se,.ce)[data-e~=bfw] :where(p,li,.pl,.lc p,.card .p p){font-weight:var(--e-bfw)}
+:is(.sg,.se,.ce)[data-e~=bff] :is(p,li,.pl,.lc p,.card .p p):not(.ty *){font-family:var(--e-bff)}
+.se:is([data-e~=row],[data-e~=cw],[data-e~=cc],[data-e~=gap]) :is(.grid,.lcg):not(.ty *){gap:var(--e-gap,16px);grid-template-columns:repeat(auto-fill,minmax(max(min(100%,var(--e-cw,250px)),calc((100% - (var(--e-cc,8) - 1)*var(--e-gap,16px))/var(--e-cc,8))),1fr))}
+.se[data-e~=col] :is(.grid,.lcg):not(.ty *){gap:var(--e-gap,16px);grid-template-columns:minmax(0,1fr)}
+.ce[data-e~=w]{width:100%;max-width:var(--e-w)}
+.ce[data-e~=ja]{justify-self:var(--e-ja)}
+.ce[data-e~=ja]:not([data-e~=w]){width:fit-content;max-width:100%}
+.ce[data-e~=sp]{margin:var(--e-sp)}
+.eld{margin:10px 0;border-top:1px dashed var(--line);padding-top:6px}.eld summary{cursor:pointer;font-weight:600}
