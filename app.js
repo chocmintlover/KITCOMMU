@@ -61,7 +61,7 @@ const stTag=p=>`<span class="tag">${p.status==='published'?'เผยแพร�
 const mkId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,4);
 async function putDoc(k,val){if(!SB||!DBH)throw {code:'42501',message:dbOff()};const {error}=await SB.from('site_docs').upsert({key:k,data:val,updated_at:new Date().toISOString()});if(error)throw error;SHR[k]=val}
 /* ===== โหลดข้อมูล: ผู้เข้าชม = get_public_site() (เฉพาะที่เผยแพร่) / ทีมงาน = ตาราง site_docs ทั้งหมด + Realtime ===== */
-const liveRender=()=>{const a=document.activeElement;if(location.hash.startsWith('#/admin')&&a&&a.matches('input,textarea,select'))return;const pq=a&&a.id==='pvq',ss=pq?a.selectionStart:0,se=pq?a.selectionEnd:0;render();if(pq){const n=$('pvq');if(n){n.focus();try{n.setSelectionRange(ss,se)}catch(e){}}}};
+const liveRender=()=>{if(CE.on&&$('ce-view')){ceRemote();return}const a=document.activeElement;if(location.hash.startsWith('#/admin')&&a&&a.matches('input,textarea,select'))return;const pq=a&&a.id==='pvq',ss=pq?a.selectionStart:0,se=pq?a.selectionEnd:0;render();if(pq){const n=$('pvq');if(n){n.focus();try{n.setSelectionRange(ss,se)}catch(e){}}}};
 async function loadPublic(){const {data,error}=await SB.rpc('get_public_site');if(error)throw error;['menu','pages','events','settings','campus','fgroups','faculties','majors','programs','people','clubcats','clubs','cposts','news'].forEach(k=>{if(data&&data[k]!=null)SHR[k]=data[k]});
  /* get_public_site() ใหม่ส่ง cposts/news มาแล้ว (เรียกครั้งเดียว) — ถ้ายังไม่ได้รัน migration_homepage.sql ให้ถอยไปใช้ RPC เดิมของโพสต์ */if(!data||!Array.isArray(data.cposts)){try{const {data:cp,error:ce}=await SB.rpc('get_public_cposts');if(!ce&&Array.isArray(cp))SHR.cposts=cp}catch(e){}}}
 async function loadAll(){const {data,error}=await SB.from('site_docs').select('key,data');if(error)throw error;(data||[]).forEach(r=>{SHR[r.key]=r.data})}
@@ -169,7 +169,7 @@ const AG=[['ภาพรวม',[['dash','แดชบอร์ด']]],['จั�
 function adminNav(sec){return `<aside aria-label="เมนูหลังบ้าน"><b class="ab">${kitTile(30)}<span>Admin · ${BRAND.short}</span>${soundBtn()}${themeBtn()}</b><br><a href="#/">&#8592; ดูเว็บไซต์</a><small style="display:block;opacity:.7;margin:6px 0;word-break:break-all">${E(Auth.email)}</small><button type="button" class="btn s" onclick="doLogout()">ออกจากระบบ</button>${AG.map(([g,it,fold])=>{const ln=it.map(([k,t])=>{const on=sec===k;return `<a href="#/admin/${k}" class="${on?'on':''}"${on?' aria-current="page"':''}>${t}</a>`}).join('');return fold?`<details class="agd"${FQN.open||it.some(x=>x[0]===sec)?' open':''} ontoggle="FQN.open=this.open"><summary class="ag">${g}</summary>${ln}</details>`:`<div class="ag">${g}</div>${ln}`}).join('')}</aside>`}
 function sbt(){sbc=!sbc;render()}
 function admin(parts){if(!Auth.canAccessAdmin())return loginView();const sec=parts[0]||'dash';if(sec!=='home')WC.hm=null;let main;
- if(sec==='dash')main=dashboard();else if(sec==='pages'&&parts[1]==='edit')main=pageEditor(parts[2]);else if(sec==='pages')main=pagesAdmin();else if(sec==='home')main=homeAdmin();else if(sec==='menu')main=menuAdmin();else if(sec==='events'&&parts[1]==='edit')main=eventEditor(parts[2]);else if(sec==='events')main=eventsAdmin();else if(sec==='campus'&&parts[1]==='edit')main=cmpEditor(parts[2]);else if(sec==='campus')main=campusAdmin();else if(sec==='plans')main=pmView();else if(sec==='courses')main=parts[1]==='edit'?cqEditor(parts[2]):parts[1]==='merge'?cqMerge():parts[1]==='program'?cqProg(parts[2]||''):cqAdmin();else if(FQE[sec])main=parts[1]==='edit'?fqEditor(sec,parts[2]):fqAdmin(sec);else if(sec==='typo')main=typoAdmin();else if(sec==='settings')main=settingsAdmin();else main='<p>ไม่พบเมนู</p>';
+ if(sec==='dash')main=dashboard();else if(sec==='pages'&&parts[1]==='edit')main=pageEditor(parts[2]);else if(sec==='pages')main=pagesAdmin();else if(sec==='home')main=homeAdmin();else if(sec==='menu')main=menuAdmin();else if(sec==='events'&&parts[1]==='edit')main=eventEditor(parts[2]);else if(sec==='events')main=eventsAdmin();else if(sec==='campus'&&parts[1]==='layout')main=ceAdmin();else if(sec==='campus'&&parts[1]==='edit')main=cmpEditor(parts[2]);else if(sec==='campus')main=campusAdmin();else if(sec==='plans')main=pmView();else if(sec==='courses')main=parts[1]==='edit'?cqEditor(parts[2]):parts[1]==='merge'?cqMerge():parts[1]==='program'?cqProg(parts[2]||''):cqAdmin();else if(FQE[sec])main=parts[1]==='edit'?fqEditor(sec,parts[2]):fqAdmin(sec);else if(sec==='typo')main=typoAdmin();else if(sec==='settings')main=settingsAdmin();else main='<p>ไม่พบเมนู</p>';
  return `<div class="adm${sbc?' c':''}">${adminNav(sec)}<main><button class="btn s" onclick="sbt()" aria-expanded="${!sbc}" aria-label="ย่อหรือขยายเมนู">${ic('menu')} เมนู</button>${toast?`<div class="msg ${toast.ok?'ok':'er'}">${E(toast.t)}</div>`:''}${main}</main></div>`}
 const dbBanner=()=>`<div class="msg ${DBH&&CW!==false?'ok':'er'}">${DBH?(CW===false?'เชื่อมต่อฐานข้อมูลแล้ว แต่บัญชีนี้ไม่มีสิทธิ์เขียนข้อมูล (ดูได้อย่างเดียว) ต้องเป็นเจ้าของหรือผู้แก้ไข':'เชื่อมต่อ Supabase แล้ว บันทึกลงฐานข้อมูลจริง (เฉพาะทีมงานที่ได้รับอนุญาต)'):dbOff()}</div>`;
 /* ===== Admin: dashboard ===== */
@@ -684,6 +684,165 @@ function cmMount(){const v=cmEl('cmv');if(!v)return;v.addEventListener('pointerd
  if(im.complete&&im.naturalWidth)go();else{im.onload=go;im.onerror=()=>{const d=cmEl('cmd');if(d)d.innerHTML='<p class="evm">โหลดภาพแผนผังไม่สำเร็จ</p>'}}}
 (function(){try{document.addEventListener('pointermove',cmMove);document.addEventListener('pointerup',cmUp);document.addEventListener('pointercancel',cmUp);addEventListener('resize',()=>{if(cmEl('cmv'))cmFit()})}catch(e){}})();
 
+/* ===== ตัวแก้ไขผัง Isometric (ลากวาง): เก็บ items + lay ใน site_docs 'campus' ร่วมกับภาพ/สถานที่/หมุดเดิม (ไม่แตะ field เดิม) =====
+   Asset: assets/campus/*.svg + catalog.json (เสิร์ฟจากโฟลเดอร์โปรเจกต์) · พิกัดเป็นพิกัดผัง (ไม่ใช่พิกเซลหน้าจอ) · ลำดับซ้อน: layer → z → y */
+const CE_BASE='assets/campus/',CE_HASH='#/admin/campus/layout',CE_U=24;
+const CE={on:false,cat:null,am:null,catErr:'',lay:{w:1440,h:900,ox:720,oy:170,bg:'#cfe8f3'},items:[],sel:new Set(),hist:[],redo:[],base:null,savedStr:'',src:'',loaded:false,booting:false,force:false,saving:false,grid:true,snap:true,hand:false,space:false,q:'',cg:'',lib:false,prop:false,remote:false,v:{s:1,tx:0,ty:0,init:false},ptr:new Map(),drag:null,ld:null,ac:new Map(),gl:false,gp:false,n:0,rank:null};
+const ceN=(v,d,lo,hi)=>{v=+v;return isFinite(v)?Math.min(hi,Math.max(lo,v)):d};
+const ceId=()=>'it'+Date.now().toString(36)+(++CE.n).toString(36)+Math.random().toString(36).slice(2,4);
+const ceClean=a=>(Array.isArray(a)?a:[]).filter(i=>i&&typeof i==='object'&&typeof i.a==='string'&&isFinite(+i.x)&&isFinite(+i.y)).map(i=>Object.assign({},i,{id:String(i.id||ceId()),a:i.a,x:+i.x,y:+i.y,s:ceN(i.s,1,.2,4),r:ceN(i.r,0,-360,360),z:Math.round(ceN(i.z,0,-9999,9999)),fx:i.fx?1:0}));
+const ceCleanLay=l=>{l=l&&typeof l==='object'?l:{};return {w:Math.round(ceN(l.w,1440,400,6000)),h:Math.round(ceN(l.h,900,300,6000)),ox:ceN(l.ox,720,-6000,6000),oy:ceN(l.oy,170,-6000,6000),bg:/^#[0-9a-f]{6}$/i.test(l.bg||'')?l.bg:'#cfe8f3'}};
+const ceSS=v=>JSON.stringify(v,(k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.keys(x).sort().reduce((o,q)=>(o[q]=x[q],o),{}):x);
+const ceStr=()=>ceSS([CE.items,CE.lay]);
+const ceDirty=()=>CE.loaded&&ceStr()!==CE.savedStr;
+const ceAs=id=>CE.am&&CE.am.get(id);
+const ceSorted=()=>CE.items.map((it,k)=>[it,k]).sort((p,q)=>{const a=ceAs(p[0].a),b=ceAs(q[0].a);return ((a?a.layer:1)-(b?b.layer:1))||(p[0].z-q[0].z)||(p[0].y-q[0].y)||(p[1]-q[1])}).map(p=>p[0]);
+const ceModal=h=>{$('md').innerHTML=`<div class="modal"><div>${h}</div></div>`};
+const ceClose=()=>{$('md').innerHTML=''};
+function ceMsg(t,ok=true){const m=$('ce-msg');if(!m)return;m.textContent=t;m.className='msg '+(ok?'ok':'er');m.hidden=false;clearTimeout(CE.mt);if(ok)CE.mt=setTimeout(()=>{const x=$('ce-msg');if(x)x.hidden=true},4500)}
+
+/* ---------- โหลด/เริ่มต้น ---------- */
+async function ceLoadDoc(){let doc=null,upd=null;
+ if(DBH){const {data,error}=await DBH.from('site_docs').select('data,updated_at').eq('key','campus').maybeSingle();if(error)throw error;if(data){doc=data.data;upd=data.updated_at}CE.src='db'}
+ else{doc=getCampus();CE.src='local'}
+ doc=doc&&typeof doc==='object'&&!Array.isArray(doc)?doc:{};
+ CE.base=clone(doc);CE.baseUpd=upd;CE.items=ceClean(doc.items);CE.lay=ceCleanLay(doc.lay);CE.sel=new Set();CE.hist=[];CE.redo=[];CE.savedStr=ceStr();CE.remote=false}
+async function ceBoot(){if(CE.booting)return;CE.booting=true;
+ try{
+  if(!CE.cat){try{const r=await fetch(CE_BASE+'catalog.json',{cache:'no-cache'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();if(!j||!Array.isArray(j.assets)||!Array.isArray(j.cats))throw new Error('รูปแบบ catalog.json ไม่ถูกต้อง');CE.cat=j;CE.am=new Map(j.assets.map(a=>[a.id,a]));CE.catErr='';j.assets.forEach(a=>{if(CE.ac.get(a.id)===undefined)ceAlphaFor(a)})}catch(e){CE.catErr='โหลดคลัง Asset ไม่สำเร็จ ('+e.message+') ตรวจสอบว่าโฟลเดอร์ assets/campus/ ถูก deploy ขึ้นเว็บพร้อมกับ index.html'}}
+  if(!CE.loaded||CE.force){CE.force=false;await ceLoadDoc();CE.loaded=true}
+ }catch(e){CE.catErr=(CE.catErr?CE.catErr+' · ':'')+'โหลดข้อมูลผังไม่สำเร็จ: '+((e&&e.message)||e)}
+ finally{CE.booting=false;ceFull()}}
+function ceAdmin(){if(!CE.on){CE.on=true;CE.force=CE.loaded&&!ceDirty();ceBoot()}
+ const b=(id,fn,t,c)=>`<button type="button" class="btn s${c?' '+c:''}"${id?` id="${id}"`:''} onclick="${fn}">${t}</button>`,sep='<span class="ce-sep"></span>';
+ return `<div class="cedt"><p><a class="bk" href="#/admin/campus" onclick="return ceLeave()">&#8592; กลับไปหน้าจัดการแผนผังสถาบัน</a></p><h1>ตัวแก้ไขผัง Isometric</h1>${dbBanner()}<div id="ce-banner"></div>
+<div class="ce-bar" role="toolbar" aria-label="เครื่องมือแก้ไขผัง">${b('ce-undo','ceUndo()','&#8630; ย้อนกลับ')}${b('ce-redo','ceRedo()','ทำซ้ำ &#8631;')}${sep}${b('ce-dup','ceDup()','คัดลอก')}${b('ce-flip','ceFlip()','พลิกซ้าย-ขวา')}${b('ce-del','ceDel()','ลบ','c')}${sep}${b('','ceZoom(1.25)','+')}${b('','ceZoom(.8)','&minus;')}${b('','ceFit()','พอดีจอ')}${b('ce-hand','ceHand()','มือเลื่อน')}
+<label class="ce-ck"><input type="checkbox" ${CE.grid?'checked':''} onchange="ceGrid(this.checked)"> กริด</label><label class="ce-ck"><input type="checkbox" ${CE.snap?'checked':''} onchange="CE.snap=this.checked"> จับกริด</label>${sep}${b('','ceSampleAsk()','โหลดผังตัวอย่าง')}${b('','ceBackup()','ดาวน์โหลดสำรอง')}${b('','ceClearAsk()','ล้างผัง','c')}<span class="ce-grow"></span><span id="ce-st" class="ce-st"></span>${b('ce-save','ceSave()','บันทึก','b')}</div>
+<div class="ce-mt">${b('','ceTog(\'lib\')','คลัง Asset')}${b('','ceTog(\'prop\')','คุณสมบัติ')}</div><div id="ce-msg" class="msg" hidden role="status"></div>
+<div class="ce-wrap${CE.lib?' lo':''}${CE.prop?' po':''}" id="ce-wrap"><aside class="ce-lib" id="ce-lib" aria-label="คลัง Asset"></aside><div class="ce-main"><div class="ce-view${CE.hand?' hand':''}" id="ce-view" tabindex="0" role="application" aria-label="พื้นที่ทำแผนผัง ลากเพื่อวางหรือย้าย Asset ใช้ลูกกลิ้งเมาส์เพื่อซูม"><div class="ce-stage" id="ce-stage"></div></div><p class="evm"><small>คลิกเลือก · ลากย้าย · Shift+คลิกเลือกหลายชิ้น · มุมล่างขวาของชิ้นที่เลือก = ปรับขนาด · Space/ปุ่มกลางเมาส์/ปุ่ม "มือเลื่อน" = เลื่อนพื้นที่ · Del ลบ · Ctrl+Z/Y ย้อน/ทำซ้ำ · Ctrl+D คัดลอก · Ctrl+S บันทึก</small></p></div><aside class="ce-prop" id="ce-prop" aria-label="คุณสมบัติ"></aside></div></div>`}
+function ceMount(){const v=$('ce-view');if(!v){CE.on=false;return}
+ if(!CE.gl){CE.gl=true;document.addEventListener('pointermove',ceMove);document.addEventListener('pointerup',ceUp);document.addEventListener('pointercancel',ceCancel);document.addEventListener('keydown',ceKey);document.addEventListener('keyup',ceKeyUp);addEventListener('resize',()=>{if($('ce-view')&&!CE.v.init)ceFit()});addEventListener('beforeunload',e=>{if(ceDirty()){e.preventDefault();e.returnValue=''}})}
+ v.addEventListener('pointerdown',ceDown);v.addEventListener('wheel',ceWheel,{passive:false});
+ if(CE.loaded&&CE.src==='local'&&DBH&&!ceDirty()&&!CE.booting){CE.force=true;ceBoot();return}
+ ceFull();if(!CE.v.init)ceFit()}
+function ceFull(){if(!$('ce-view'))return;ceLibDraw();ceDraw();ceProp();ceStatus();ceBanner();const e=$('ce-view');if(e&&!CE.v.init)ceFit();const m=$('ce-msg');if(m&&CE.catErr){m.textContent=CE.catErr;m.className='msg er';m.hidden=false}}
+
+/* ---------- วาดพื้นที่ทำงาน ---------- */
+function ceBox(it){const a=ceAs(it.a);if(!a)return {l:it.x-20,t:it.y-20,w:40,h:40};const s=it.s,w=a.w*s,h=a.h*s;return {l:it.fx?it.x-(a.w-a.ax)*s:it.x-a.ax*s,t:it.y-a.ay*s,w,h}}
+function ceIs(it,k){const a=ceAs(it.a);if(!a)return `left:${it.x-20}px;top:${it.y-20}px;width:40px;height:40px;z-index:${k+1}`;const s=it.s;return `left:${(it.x-a.ax*s).toFixed(1)}px;top:${(it.y-a.ay*s).toFixed(1)}px;width:${(a.w*s).toFixed(1)}px;height:${(a.h*s).toFixed(1)}px;z-index:${k+1};transform-origin:${(a.ax*s).toFixed(1)}px ${(a.ay*s).toFixed(1)}px;${it.fx?'transform:scaleX(-1)':''}`}
+function ceGridSvg(){if(!CE.grid)return '';const L=CE.lay,U=CE_U,P=(gx,gy)=>(L.ox+(gx-gy)*U).toFixed(0)+','+(L.oy+(gx+gy)*U/2).toFixed(0);let d1='',d2='';for(let k=-10;k<=45;k++){const t=`M${P(k,-10)}L${P(k,45)}M${P(-10,k)}L${P(45,k)}`;if(k%5===0)d2+=t;else d1+=t}
+ return `<svg class="ce-grid" width="${L.w}" height="${L.h}" viewBox="0 0 ${L.w} ${L.h}" aria-hidden="true"><path d="${d1}" stroke="#000" stroke-opacity=".10" fill="none"/><path d="${d2}" stroke="#000" stroke-opacity=".24" fill="none"/></svg>`}
+function ceDraw(){const st=$('ce-stage');if(!st)return;const L=CE.lay,S=ceSorted();CE.rank=new Map(S.map((it,k)=>[it.id,k]));
+ let h=`<div class="ce-bg" style="width:${L.w}px;height:${L.h}px;background:${E(L.bg)}"></div>`;
+ S.forEach((it,k)=>{const a=ceAs(it.a);h+=a?`<img class="ce-it" data-id="${E(it.id)}" src="${E(a.file)}" alt="" draggable="false" style="${ceIs(it,k)}">`:`<div class="ce-it ce-miss" data-id="${E(it.id)}" title="ไม่พบ Asset ${E(it.a)}" style="${ceIs(it,k)}">?</div>`});
+ h+=ceGridSvg()+'<div id="ce-sels"></div>';st.style.width=L.w+'px';st.style.height=L.h+'px';st.innerHTML=h;ceSelBoxes();ceApplyV()}
+function ceSelBoxes(){const h=$('ce-sels');if(!h)return;let o='';const one=CE.sel.size===1;CE.items.forEach(it=>{if(!CE.sel.has(it.id))return;const b=ceBox(it);o+=`<div class="ce-sel" style="left:${b.l}px;top:${b.t}px;width:${b.w}px;height:${b.h}px"></div>`;if(one)o+=`<div class="ce-h" id="ce-h" style="left:${b.l+b.w}px;top:${b.t+b.h}px" title="ลากเพื่อปรับขนาด"></div>`});h.innerHTML=o;ceBtns()}
+function ceMoveEls(){const st=$('ce-stage');if(!st)return;CE.items.forEach(it=>{if(!CE.sel.has(it.id))return;const el=st.querySelector('[data-id="'+CSS.escape(it.id)+'"]');if(el)el.style.cssText=ceIs(it,CE.rank&&CE.rank.has(it.id)?CE.rank.get(it.id):0)});ceSelBoxes();ceStatus()}
+function ceApplyV(){const s=$('ce-stage');if(!s)return;const v=CE.v;s.style.transform=`translate(${v.tx}px,${v.ty}px) scale(${v.s})`;s.style.setProperty('--inv',(1/v.s).toFixed(4))}
+function ceFit(){const v=$('ce-view');if(!v)return;const L=CE.lay,w=v.clientWidth,h=v.clientHeight;if(!w||!h)return;const s=Math.min(w/L.w,h/L.h)*.98;CE.v={s,tx:(w-L.w*s)/2,ty:(h-L.h*s)/2,init:true};ceApplyV()}
+function ceZoomAt(f,cx,cy){const v=CE.v,ns=Math.min(4,Math.max(.1,v.s*f)),r=ns/v.s;v.tx=cx-(cx-v.tx)*r;v.ty=cy-(cy-v.ty)*r;v.s=ns;ceApplyV()}
+function ceZoom(f){const v=$('ce-view');if(v)ceZoomAt(f,v.clientWidth/2,v.clientHeight/2)}
+function ceW(e){const r=$('ce-view').getBoundingClientRect(),v=CE.v;return {x:(e.clientX-r.left-v.tx)/v.s,y:(e.clientY-r.top-v.ty)/v.s}}
+function ceSnapP(x,y){if(!CE.snap)return {x,y};const L=CE.lay,U=CE_U,sx=x-L.ox,sy=y-L.oy,gx=(2*sy/U+sx/U)/2,gy=(2*sy/U-sx/U)/2,q=v=>Math.round(v*2)/2,a=q(gx),b=q(gy);return {x:L.ox+(a-b)*U,y:L.oy+(a+b)*U/2}}
+function ceGrid(on){CE.grid=!!on;ceDraw()}
+function ceHand(){CE.hand=!CE.hand;const v=$('ce-view');if(v)v.classList.toggle('hand',CE.hand||CE.space);const b=$('ce-hand');if(b)b.classList.toggle('b',CE.hand)}
+function ceTog(k){CE[k]=!CE[k];const w=$('ce-wrap');if(w){w.classList.toggle('lo',CE.lib);w.classList.toggle('po',CE.prop);if(k==='lib'&&CE.lib){CE.prop=false;w.classList.remove('po')}if(k==='prop'&&CE.prop){CE.lib=false;w.classList.remove('lo')}}}
+
+/* ---------- เลือก/ลาก/ปรับขนาด ---------- */
+function ceAlphaFor(a){CE.ac.set(a.id,null);const im=new Image();im.onload=()=>{try{const c=document.createElement('canvas');c.width=a.w;c.height=a.h;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0,a.w,a.h);CE.ac.set(a.id,{d:x.getImageData(0,0,a.w,a.h).data,w:a.w})}catch(e){CE.ac.set(a.id,false)}};im.onerror=()=>CE.ac.set(a.id,false);im.src=a.file;return null}
+function ceHit(wx,wy){const L=ceSorted();for(let k=L.length-1;k>=0;k--){const it=L[k],a=ceAs(it.a);if(!a)continue;const s=it.s;let px=(wx-(it.x-a.ax*s))/s;const py=(wy-(it.y-a.ay*s))/s;if(it.fx)px=2*a.ax-px;if(px<0||py<0||px>=a.w||py>=a.h)continue;let m=CE.ac.get(a.id);if(m===undefined)m=ceAlphaFor(a);if(m&&m.d){if(m.d[(Math.floor(py)*m.w+Math.floor(px))*4+3]<20)continue}return it}return null}
+const ceSelItems=()=>CE.items.filter(i=>CE.sel.has(i.id));
+function ceDown(e){const v=$('ce-view');if(!v)return;if(e.pointerType==='mouse'&&e.button===2)return;try{v.focus({preventScroll:true})}catch(x){}CE.ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(CE.ptr.size===2){const a=[...CE.ptr.values()];CE.drag={t:'pinch',d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1,mx:(a[0].x+a[1].x)/2,my:(a[0].y+a[1].y)/2};return}
+ if(CE.ptr.size>2)return;const w=ceW(e),mid=e.pointerType==='mouse'&&e.button===1;
+ if(e.target&&e.target.id==='ce-h'&&CE.sel.size===1){const it=ceSelItems()[0];CE.drag={t:'size',id:it.id,s0:it.s,d0:Math.hypot(w.x-it.x,w.y-it.y)||1,pushed:false};e.preventDefault();return}
+ if(mid||CE.hand||CE.space){CE.drag={t:'pan',x:e.clientX,y:e.clientY,tx:CE.v.tx,ty:CE.v.ty};v.classList.add('dr');e.preventDefault();return}
+ const hit=ceHit(w.x,w.y),add=e.shiftKey||e.ctrlKey||e.metaKey;
+ if(hit){if(add){if(CE.sel.has(hit.id))CE.sel.delete(hit.id);else CE.sel.add(hit.id)}else if(!CE.sel.has(hit.id))CE.sel=new Set([hit.id]);const o=new Map();ceSelItems().forEach(i=>o.set(i.id,{x:i.x,y:i.y}));CE.drag={t:'move',sx:e.clientX,sy:e.clientY,o,pid:hit.id,pushed:false,moved:false};ceSelBoxes();ceProp()}
+ else{if(!add&&CE.sel.size){CE.sel=new Set();ceSelBoxes();ceProp()}CE.drag={t:'pan',x:e.clientX,y:e.clientY,tx:CE.v.tx,ty:CE.v.ty};v.classList.add('dr')}}
+function ceMove(e){if(CE.ld)return ceLibMove(e);if(!CE.ptr.has(e.pointerId))return;CE.ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});const d=CE.drag;if(!d)return;
+ if(d.t==='pinch'&&CE.ptr.size>=2){const a=[...CE.ptr.values()],nd=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1,mx=(a[0].x+a[1].x)/2,my=(a[0].y+a[1].y)/2,r=$('ce-view').getBoundingClientRect();CE.v.tx+=mx-d.mx;CE.v.ty+=my-d.my;ceZoomAt(nd/d.d,mx-r.left,my-r.top);d.d=nd;d.mx=mx;d.my=my}
+ else if(d.t==='pan'){CE.v.tx=d.tx+e.clientX-d.x;CE.v.ty=d.ty+e.clientY-d.y;ceApplyV()}
+ else if(d.t==='move'){if(!d.moved&&Math.abs(e.clientX-d.sx)+Math.abs(e.clientY-d.sy)<4)return;if(!d.pushed){cePush();d.pushed=true}d.moved=true;const dx=(e.clientX-d.sx)/CE.v.s,dy=(e.clientY-d.sy)/CE.v.s,p0=d.o.get(d.pid);let ox=dx,oy=dy;if(p0){const sp=ceSnapP(p0.x+dx,p0.y+dy);ox=sp.x-p0.x;oy=sp.y-p0.y}CE.items.forEach(it=>{const o=d.o.get(it.id);if(o){it.x=+(o.x+ox).toFixed(1);it.y=+(o.y+oy).toFixed(1)}});ceMoveEls()}
+ else if(d.t==='size'){const it=CE.items.find(i=>i.id===d.id);if(!it)return;const w=ceW(e),r=Math.hypot(w.x-it.x,w.y-it.y)/d.d0;if(!d.pushed){cePush();d.pushed=true}it.s=ceN(+(d.s0*r).toFixed(2),it.s,.2,4);ceMoveEls()}}
+function ceUp(e){if(CE.ld)return ceLibUp(e);if(!CE.ptr.has(e.pointerId))return;CE.ptr.delete(e.pointerId);const v=$('ce-view'),d=CE.drag;
+ if(CE.ptr.size===0){CE.drag=null;if(v)v.classList.remove('dr');if(d&&(d.t==='move'||d.t==='size')&&d.pushed)ceAfter();else ceProp()}
+ else if(CE.ptr.size===1){const a=[...CE.ptr.values()][0];CE.drag={t:'pan',x:a.x,y:a.y,tx:CE.v.tx,ty:CE.v.ty}}}
+function ceCancel(e){if(CE.ld){if(CE.ld.g)CE.ld.g.remove();CE.ld=null;return}ceUp(e)}
+function ceWheel(e){e.preventDefault();const v=$('ce-view');if(!v)return;const r=v.getBoundingClientRect();ceZoomAt(Math.exp(-e.deltaY*(e.ctrlKey?.01:.0015)),e.clientX-r.left,e.clientY-r.top)}
+function ceKey(e){if(!CE.on||!$('ce-view')||($('md')&&$('md').innerHTML))return;const t=e.target;if(t&&t.matches&&t.matches('input,textarea,select'))return;const k=e.key,K=(k||'').toLowerCase(),m=e.ctrlKey||e.metaKey;
+ if(k===' '&&t&&(t.id==='ce-view'||t===document.body)){CE.space=true;const v=$('ce-view');if(v)v.classList.add('hand');e.preventDefault();return}
+ if(m&&K==='z'){e.preventDefault();e.shiftKey?ceRedo():ceUndo()}else if(m&&K==='y'){e.preventDefault();ceRedo()}else if(m&&K==='d'){e.preventDefault();ceDup()}else if(m&&K==='a'){e.preventDefault();CE.sel=new Set(CE.items.map(i=>i.id));ceSelBoxes();ceProp()}else if(m&&K==='s'){e.preventDefault();ceSave()}
+ else if((k==='Delete'||k==='Backspace')&&CE.sel.size){e.preventDefault();ceDel()}else if(k==='Escape'&&CE.sel.size){CE.sel=new Set();ceSelBoxes();ceProp()}else if(k==='['&&CE.sel.size)ceZ('d');else if(k===']'&&CE.sel.size)ceZ('u');
+ else if(k.indexOf('Arrow')===0&&CE.sel.size){e.preventDefault();const st=e.shiftKey?12:2,dx=k==='ArrowLeft'?-st:k==='ArrowRight'?st:0,dy=k==='ArrowUp'?-st:k==='ArrowDown'?st:0;cePush();ceSelItems().forEach(i=>{i.x+=dx;i.y+=dy});ceAfter()}}
+function ceKeyUp(e){if(e.key===' '&&CE.space){CE.space=false;const v=$('ce-view');if(v)v.classList.toggle('hand',CE.hand)}}
+
+/* ---------- แก้ไขข้อมูล (ทุกการแก้ไขบันทึกประวัติ Undo) ---------- */
+function cePush(){CE.hist.push(JSON.stringify(CE.items));if(CE.hist.length>80)CE.hist.shift();CE.redo=[]}
+function ceUndo(){if(!CE.hist.length)return;CE.redo.push(JSON.stringify(CE.items));CE.items=JSON.parse(CE.hist.pop());ceAfter()}
+function ceRedo(){if(!CE.redo.length)return;CE.hist.push(JSON.stringify(CE.items));CE.items=JSON.parse(CE.redo.pop());ceAfter()}
+function ceAfter(){const ids=new Set(CE.items.map(i=>i.id));CE.sel=new Set([...CE.sel].filter(i=>ids.has(i)));ceDraw();ceProp();ceStatus()}
+function ceAdd(aid,x,y){const a=ceAs(aid);if(!a)return;const p=ceSnapP(x,y);cePush();const it={id:ceId(),a:aid,x:+p.x.toFixed(1),y:+p.y.toFixed(1),s:1,r:0,z:0,fx:0};CE.items.push(it);CE.sel=new Set([it.id]);ceAfter()}
+function ceAddCenter(aid){const v=$('ce-view');if(!v)return;const r=v.getBoundingClientRect(),w=ceW({clientX:r.left+r.width/2,clientY:r.top+r.height/2});ceAdd(aid,w.x,w.y);if(innerWidth<1000&&CE.lib)ceTog('lib')}
+function ceDup(){const S=ceSelItems();if(!S.length)return;cePush();const ns=new Set();S.forEach(i=>{const c=Object.assign({},i,{id:ceId(),x:+(i.x+CE_U).toFixed(1),y:+(i.y+CE_U/2).toFixed(1)});CE.items.push(c);ns.add(c.id)});CE.sel=ns;ceAfter()}
+function ceDel(){if(!CE.sel.size)return;cePush();CE.items=CE.items.filter(i=>!CE.sel.has(i.id));CE.sel=new Set();ceAfter()}
+function ceFlip(){const S=ceSelItems();if(!S.length)return;cePush();S.forEach(i=>{i.fx=i.fx?0:1});ceAfter()}
+function ceZ(m){const S=ceSelItems();if(!S.length)return;cePush();const zs=CE.items.map(i=>i.z),mx=Math.max(...zs),mn=Math.min(...zs);S.forEach(i=>{i.z=m==='f'?mx+1:m==='b'?mn-1:m==='u'?i.z+1:i.z-1});ceAfter()}
+function ceSet(k,v){const S=ceSelItems();if(!S.length)return;cePush();S.forEach(i=>{if(k==='x'||k==='y')i[k]=ceN(v,i[k],-20000,20000);else if(k==='s')i.s=ceN(v,i.s,.2,4);else if(k==='z')i.z=Math.round(ceN(v,i.z,-9999,9999))});ceAfter()}
+function ceScaleLive(v){const S=ceSelItems();if(!S.length)return;if(!CE.gp){cePush();CE.gp=true}S.forEach(i=>{i.s=ceN(v,i.s,.2,4)});ceMoveEls()}
+function ceScaleEnd(){CE.gp=false;ceAfter()}
+function ceLay(k,v){if(k==='bg'){if(/^#[0-9a-f]{6}$/i.test(v))CE.lay.bg=v}else CE.lay[k]=Math.round(ceN(v,CE.lay[k],400,6000));ceDraw();ceStatus()}
+
+/* ---------- คลัง Asset ---------- */
+function ceTiles(){const c=CE.cat;if(!c)return '';const q=CE.q.trim().toLowerCase(),L=c.assets.filter(a=>(!CE.cg||a.cat===CE.cg)&&(!q||(a.name+' '+a.nameEn+' '+a.id).toLowerCase().includes(q)));
+ return L.map(a=>`<button type="button" class="ce-tile" onpointerdown="ceLibDown(event,'${E(a.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){ceAddCenter('${E(a.id)}');event.preventDefault()}" title="${E(a.nameEn)}"><img src="${E(a.file)}" alt="" draggable="false"><span>${E(a.name)}</span></button>`).join('')||'<p class="evm">ไม่พบ Asset ที่ตรงกับการค้นหา</p>'}
+function ceLibDraw(){const p=$('ce-lib');if(!p)return;const c=CE.cat;if(!c){p.innerHTML=CE.catErr?`<div class="msg er">${E(CE.catErr)}</div>`:'<p class="evm">กำลังโหลดคลัง Asset...</p>';return}
+ p.innerHTML=`<input id="ce-q" type="search" placeholder="ค้นหา Asset" value="${E(CE.q)}" oninput="ceQ(this.value)" aria-label="ค้นหา Asset"><div class="cmcs ce-cg" role="group" aria-label="หมวดหมู่ Asset"><button type="button" class="cmc${CE.cg===''?' on':''}" data-g="" onclick="ceCg('')">ทั้งหมด</button>${c.cats.map(t=>`<button type="button" class="cmc${CE.cg===t.id?' on':''}" data-g="${E(t.id)}" onclick="ceCg('${E(t.id)}')">${E(t.name)}</button>`).join('')}</div><div class="ce-tiles" id="ce-tiles">${ceTiles()}</div><p class="evm"><small>ลากไปวางบนพื้นที่ทำงาน หรือแตะ/กด Enter เพื่อวางกลางจอ</small></p>`}
+function ceQ(v){CE.q=v;const t=$('ce-tiles');if(t)t.innerHTML=ceTiles()}
+function ceCg(g){CE.cg=g;document.querySelectorAll('.ce-cg .cmc').forEach(b=>b.classList.toggle('on',(b.dataset.g||'')===g));const t=$('ce-tiles');if(t)t.innerHTML=ceTiles()}
+function ceLibDown(e,id){if(e.pointerType==='mouse'&&e.button!==0)return;CE.ld={id,sx:e.clientX,sy:e.clientY,g:null,moved:false,pid:e.pointerId}}
+function ceLibMove(e){const d=CE.ld;if(!d||e.pointerId!==d.pid)return;if(!d.moved&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)>6){d.moved=true;const a=ceAs(d.id),g=document.createElement('img');g.className='ce-ghost';g.src=a.file;g.alt='';g.style.width=(a.w*CE.v.s)+'px';document.body.appendChild(g);d.g=g}
+ if(d.g){const a=ceAs(d.id);d.g.style.left=(e.clientX-a.ax*CE.v.s)+'px';d.g.style.top=(e.clientY-a.ay*CE.v.s)+'px'}}
+function ceLibUp(e){const d=CE.ld;if(e.pointerId!==d.pid)return;CE.ld=null;if(d.g)d.g.remove();const v=$('ce-view');
+ if(d.moved){if(v){const r=v.getBoundingClientRect();if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){const w=ceW(e);ceAdd(d.id,w.x,w.y)}}}else ceAddCenter(d.id)}
+
+/* ---------- แถบคุณสมบัติ / สถานะ ---------- */
+function ceProp(){const p=$('ce-prop');if(!p)return;const S=ceSelItems(),b=(fn,t,c)=>`<button type="button" class="btn s${c?' '+c:''}" onclick="${fn}">${t}</button>`;let h;
+ if(!S.length)h=`<h3>ผัง</h3><p class="evm">ทั้งหมด ${CE.items.length} ชิ้น · คลิกชิ้นบนผังเพื่อแก้ไขคุณสมบัติ</p><label>ขนาดผัง (px) กว้าง × สูง</label><div class="ce-two"><input type="number" min="400" max="6000" value="${CE.lay.w}" onchange="ceLay('w',this.value)" aria-label="กว้าง"><input type="number" min="300" max="6000" value="${CE.lay.h}" onchange="ceLay('h',this.value)" aria-label="สูง"></div><label>สีพื้นหลัง</label><input type="color" value="${E(CE.lay.bg)}" onchange="ceLay('bg',this.value)"><p class="evm"><small>ตำแหน่งทุกชิ้นอ้างอิงพื้นที่ผังนี้ ไม่ใช่พิกเซลหน้าจอ จึงไม่คลาดเคลื่อนเมื่อเปลี่ยนขนาดหน้าต่าง</small></p>`;
+ else if(S.length===1){const it=S[0],a=ceAs(it.a);h=`<h3>${E(a?a.name:'ไม่พบ Asset')}</h3><p class="evm"><small>${E(it.a)}${a?' · '+E(a.nameEn):''}</small></p><label>ตำแหน่ง X / Y (พิกัดผัง)</label><div class="ce-two"><input type="number" step="1" value="${+it.x.toFixed(1)}" onchange="ceSet('x',this.value)" aria-label="X"><input type="number" step="1" value="${+it.y.toFixed(1)}" onchange="ceSet('y',this.value)" aria-label="Y"></div><label>ขนาด (${Math.round(it.s*100)}%)</label><input type="range" min=".2" max="4" step=".05" value="${it.s}" oninput="ceScaleLive(this.value)" onchange="ceScaleEnd()" aria-label="ขนาด"><label class="ce-ck"><input type="checkbox" ${it.fx?'checked':''} onchange="ceFlip()"> พลิกซ้าย-ขวา</label><label>ลำดับซ้อนภาพ (z: มาก = อยู่หน้า)</label><input type="number" step="1" value="${it.z}" onchange="ceSet('z',this.value)"><p>${b("ceZ('f')",'ไปด้านหน้าสุด')} ${b("ceZ('b')",'ไปด้านหลังสุด')} ${b("ceZ('u')",'ขึ้น 1 ชั้น')} ${b("ceZ('d')",'ลง 1 ชั้น')}</p><p>${b('ceDup()','คัดลอก')} ${b('ceDel()','ลบ','c')}</p><h4>สถานที่ที่เชื่อมโยง</h4><p class="evm"><small>${a&&a.linkable?'Asset นี้เชื่อมกับคณะ/สถานที่ได้ (เปิดใช้งานในระยะถัดไป)':'Asset ตกแต่ง ไม่ผูกกับสถานที่'}</small></p>`}
+ else h=`<h3>เลือก ${S.length} ชิ้น</h3><p class="evm">ลากเพื่อย้ายพร้อมกัน</p><p>${b('ceDup()','คัดลอก')} ${b('ceFlip()','พลิกซ้าย-ขวา')} ${b('ceDel()','ลบ','c')}</p><p>${b("ceZ('f')",'ไปด้านหน้าสุด')} ${b("ceZ('b')",'ไปด้านหลังสุด')}</p>`;
+ p.innerHTML=h}
+function ceBtns(){const n=CE.sel.size;['ce-dup','ce-flip','ce-del'].forEach(i=>{const e=$(i);if(e)e.disabled=!n})}
+function ceStatus(){const d=ceDirty(),s=$('ce-st');if(s){s.textContent=!CE.loaded?'กำลังโหลด...':(d?'มีการแก้ไขที่ยังไม่ได้บันทึก':'บันทึกแล้ว')+' · '+CE.items.length+' ชิ้น';s.className='ce-st'+(d?' d':'')}const u=$('ce-undo'),r=$('ce-redo'),sv=$('ce-save');if(u)u.disabled=!CE.hist.length;if(r)r.disabled=!CE.redo.length;if(sv)sv.disabled=CE.saving||!CE.loaded;ceBtns()}
+function ceBanner(){const b=$('ce-banner');if(b)b.innerHTML=CE.remote?'<div class="msg er">มีการแก้ไขผังจากผู้ดูแลคนอื่นหลังจากคุณเปิดตัวแก้ไข ระบบจะเตือนก่อนบันทึกเพื่อไม่ให้เขียนทับโดยไม่ตั้งใจ</div>':''}
+function ceRemote(){if(!CE.base)return;const n=getSH('campus');CE.remote=ceSS((n&&n.items)||[])!==ceSS(CE.base.items||[]);ceBanner()}
+
+/* ---------- บันทึก (เฉพาะเมื่อกดปุ่ม): รวมเข้ากับเอกสารล่าสุด เปลี่ยนเฉพาะ items/lay + ตรวจการแก้ไขซ้อน ---------- */
+async function ceSave(force){if(!DBH)return ceMsg(dbOff(),false);if(CE.saving||!CE.loaded)return;if(CW===false)return ceMsg('บัญชีนี้ไม่มีสิทธิ์เขียนข้อมูล',false);CE.saving=true;ceStatus();ceClose();
+ try{
+  const {data:row,error}=await DBH.from('site_docs').select('data,updated_at').eq('key','campus').maybeSingle();if(error)throw error;
+  const latest=row&&row.data&&typeof row.data==='object'&&!Array.isArray(row.data)?row.data:{};
+  if(!force&&ceSS(latest.items||[])!==ceSS((CE.base&&CE.base.items)||[])&&!(row&&CE.baseUpd===row.updated_at)){CE.saving=false;ceStatus();return ceConflict()}
+  if(!force&&!CE.items.length&&(latest.items||[]).length){CE.saving=false;ceStatus();return ceModal('<h3>บันทึกผังว่าง</h3><p>ผังที่บันทึกไว้มี '+(latest.items||[]).length+' ชิ้น แต่ตอนนี้ผังว่าง ต้องการบันทึกทับเป็นผังว่างหรือไม่ (ควรกด "ดาวน์โหลดสำรอง" ไว้ก่อน)</p><button class="btn c" onclick="ceSave(true)">บันทึกเป็นผังว่าง</button> <button class="btn" onclick="ceClose()">ยกเลิก</button>')}
+  const doc=Object.assign({},latest,{items:CE.items,lay:CE.lay});let res;
+  if(row){res=await DBH.from('site_docs').update({data:doc,updated_at:new Date().toISOString()}).eq('key','campus').eq('updated_at',row.updated_at).select('data,updated_at');if(res.error)throw res.error;if(!res.data||!res.data.length){CE.saving=false;ceStatus();return ceConflict()}}
+  else{res=await DBH.from('site_docs').insert({key:'campus',data:doc,updated_at:new Date().toISOString()}).select('data,updated_at');if(res.error)throw res.error}
+  const r=res.data[0];SHR.campus=r.data;CE.base=clone(r.data);CE.baseUpd=r.updated_at;CE.savedStr=ceStr();CE.remote=false;ceBanner();ceMsg('บันทึกผังเรียบร้อย ผังเดิม (ภาพ สถานที่ หมุด) ไม่ถูกแก้ไข')
+ }catch(e){const c=(e&&(e.code||e.status))||'error';ceMsg('บันทึกไม่สำเร็จ: '+(ERR[c]||(e&&e.message)||'เกิดข้อผิดพลาด')+' ('+c+')',false)}
+ finally{CE.saving=false;ceStatus()}}
+function ceConflict(){ceModal('<h3>ข้อมูลผังถูกแก้ไขโดยผู้อื่น</h3><p>มีผู้ดูแลคนอื่นบันทึกผังหลังจากที่คุณเปิดตัวแก้ไข การบันทึกตอนนี้จะเขียนทับงานของเขา ยังไม่มีอะไรถูกบันทึก</p><p><button class="btn s" onclick="ceDlMine()">ดาวน์โหลดงานของฉันเก็บไว้</button></p><p><button class="btn b" onclick="ceTakeLatest()">โหลดข้อมูลล่าสุด (ทิ้งงานของฉัน)</button></p><p><button class="btn c" onclick="ceSave(true)">บันทึกทับ (ใช้งานของฉัน)</button> <button class="btn" onclick="ceClose()">ยกเลิก</button></p>')}
+function ceDl(obj,name){const bl=new Blob([JSON.stringify(obj,null,1)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000)}
+const ceDay=()=>new Date().toISOString().slice(0,10);
+function ceDlMine(){ceDl({items:CE.items,lay:CE.lay},'campus-layout-mine-'+ceDay()+'.json');ceMsg('ดาวน์โหลดงานของคุณแล้ว')}
+async function ceTakeLatest(){ceClose();CE.savedStr=ceStr();CE.force=true;await ceBoot();ceMsg('โหลดข้อมูลล่าสุดแล้ว')}
+async function ceBackup(){try{let doc=CE.base;if(DBH){const {data,error}=await DBH.from('site_docs').select('data').eq('key','campus').maybeSingle();if(error)throw error;if(data)doc=data.data}ceDl(doc||{},'campus-backup-'+ceDay()+'.json');ceMsg('ดาวน์โหลดไฟล์สำรองเอกสารแผนผัง (campus) ทั้งหมดแล้ว')}catch(e){ceMsg('สำรองข้อมูลไม่สำเร็จ: '+((e&&e.message)||e),false)}}
+function ceSampleAsk(){if(!CE.items.length)return ceSample();ceModal('<h3>โหลดผังตัวอย่าง</h3><p>ผังปัจจุบัน '+CE.items.length+' ชิ้นในตัวแก้ไขจะถูกแทนที่ (ย้อนกลับได้ด้วย Undo และยังไม่บันทึกลงฐานข้อมูลจนกว่าจะกด "บันทึก")</p><button class="btn b" onclick="ceSample()">แทนที่ด้วยผังตัวอย่าง</button> <button class="btn" onclick="ceClose()">ยกเลิก</button>')}
+async function ceSample(){ceClose();try{const r=await fetch(CE_BASE+'sample_layout.json',{cache:'no-cache'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();cePush();CE.items=ceClean(j.items);CE.lay=ceCleanLay(j);CE.sel=new Set();ceFull();ceFit();ceMsg('โหลดผังตัวอย่างเข้าตัวแก้ไขแล้ว (ยังไม่ได้บันทึกลงฐานข้อมูล)')}catch(e){ceMsg('โหลดผังตัวอย่างไม่สำเร็จ: '+e.message,false)}}
+function ceClearAsk(){if(!CE.items.length)return ceMsg('ผังยังว่างอยู่แล้ว');ceModal('<h3>ล้างผัง</h3><p>ลบ Asset ทั้ง '+CE.items.length+' ชิ้นออกจากตัวแก้ไข (ย้อนกลับได้ด้วย Undo และไม่กระทบข้อมูลในฐานข้อมูลจนกว่าจะกด "บันทึก") ภาพแผนผังเดิมและหมุดสถานที่ไม่ถูกลบ</p><button class="btn c" onclick="ceClear()">ล้างผัง</button> <button class="btn" onclick="ceClose()">ยกเลิก</button>')}
+function ceClear(){ceClose();cePush();CE.items=[];CE.sel=new Set();ceAfter()}
+function ceLeave(){if(!ceDirty())return true;ceModal('<h3>ยังไม่ได้บันทึก</h3><p>มีการแก้ไขผังที่ยังไม่ได้บันทึก</p><button class="btn b" onclick="ceClose()">กลับไปแก้ไขต่อ</button> <button class="btn c" onclick="ceLeaveGo()">ทิ้งการแก้ไขและออก</button>');return false}
+function ceLeaveGo(){ceClose();CE.savedStr=ceStr();CE.loaded=false;location.hash='#/admin/campus'}
+
 /* ===== Admin: จัดการแผนผังสถาบัน ===== */
 async function cmUpload(file,dir){if(!SB||!DBH)throw {message:dbOff()};if(!file)throw {message:'ไม่ได้เลือกไฟล์'};const ext=CM_MIME[file.type];if(!ext)throw {message:'รองรับเฉพาะไฟล์ PNG, JPG, WebP, GIF'};if(file.size>5*1024*1024)throw {message:'ไฟล์ใหญ่เกิน 5 MB'};
  const path=dir+'/'+mkId('f')+'.'+ext,{error}=await SB.storage.from('campus').upload(path,file,{contentType:file.type,cacheControl:'31536000',upsert:false});if(error)throw error;return SB.storage.from('campus').getPublicUrl(path).data.publicUrl}
@@ -697,6 +856,7 @@ async function cmMakePage(){if(!DBH)return say(dbOff(),false);const P=clone(getP
 function campusAdmin(){const c=getCampus(),L=cmAll(),{pg,mi}=cmPageInfo();
  const pgBox=pg&&mi?`<div class="msg ok">หน้าอยู่ในเมนูแล้ว ${stTag(pg)} · <a href="#/p/${E(pg.slug)}">เปิดหน้า</a> · <a href="#/admin/pages/edit/${E(pg.id)}">แก้ไขหน้า</a> · <a href="#/admin/menu">จัดตำแหน่งเมนู</a></div>`:`<div class="msg er">${pg?'มีหน้าแผนผังแล้วแต่ยังไม่อยู่ในเมนู':'ยังไม่มีหน้า "แผนผังสถาบัน" ในเมนูของเว็บไซต์'}</div><p><button type="button" class="btn b" onclick="cmMakePage()">${pg?'เพิ่มลงในเมนู':'สร้างหน้าและเมนู "แผนผังสถาบัน"'}</button></p>`;
  return `<h1>จัดการแผนผังสถาบัน</h1><p>ภาพแผนผัง สถานที่ และหมุดตำแหน่ง ข้อมูลบันทึกใน Supabase ผู้เข้าชมเห็นทันทีหลังบันทึก</p>${dbBanner()}
+<h2>ตัวแก้ไขผัง Isometric (ลากวาง)</h2><p>วางอาคาร ถนน ต้นไม้ จากคลัง Asset แล้วบันทึกเป็นผังของสถาบัน (แยกจากภาพแผนผังและหมุดเดิม ซึ่งไม่ถูกแก้ไข)</p><p><a class="btn b" href="#/admin/campus/layout">เปิดตัวแก้ไขผัง Isometric</a></p>
 <h2>เมนูและหน้าเว็บ</h2>${pgBox}
 <h2>ภาพแผนผังหลัก</h2>${okU(c.image)?`<img src="${E(c.image)}" alt="แผนผังสถาบัน" style="max-width:100%;max-height:320px;border-radius:12px;border:1px solid var(--line)"><p><small>ขนาดภาพ ${+c.imgW||'?'} × ${+c.imgH||'?'} px</small></p>`:'<div class="msg er">ยังไม่มีภาพแผนผัง</div>'}
 <form id="af" onsubmit="return false"><label>อัปโหลดภาพใหม่ (PNG, JPG, WebP, GIF ไม่เกิน 5 MB)</label><input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onchange="cmPickMap(this)"><label>หรือใช้ลิงก์ภาพ (https://)</label><input name="cm_url" value="${E(c.image)}" placeholder="https://..."><p><button type="button" class="btn s" onclick="cmMapUrl()">ใช้ลิงก์นี้</button> ${okU(c.image)?'<button type="button" class="btn s c" onclick="cmClearAsk()">ลบภาพแผนผัง</button>':''}</p><p><small>ตำแหน่งหมุดเก็บเป็นเปอร์เซ็นต์ของภาพ หากเปลี่ยนเป็นภาพที่สัดส่วนต่างจากเดิม ควรตรวจตำแหน่งหมุดอีกครั้ง</small></p>
@@ -1443,5 +1603,5 @@ function sndPrev(){sndWake();sndPlay('tick')}
 function setTitle(p){const s=getSet();let t=s.nameTh+' | '+s.nameEn+' ('+BRAND.short+')';if(p[0]==='admin')t='Admin · '+BRAND.short+' | '+s.nameTh;else if(p[0]==='faculty'){const q=fqPub().F.find(x=>x.id===p[1]);if(q)t=q.nameTh+' | '+s.nameTh}else if(p[0]==='program'){const q=fqPub().P.find(x=>x.id===p[1]);if(q)t=q.nameTh+' | '+s.nameTh}else if(p[0]==='club'){const q=clAll().find(x=>x.id===p[1]);if(q)t=q.name+' | '+s.nameTh}else if(p[0]==='community')t=(HD().pt||CP_T)+' | '+s.nameTh;else if(p[0]==='news'){let q=null;if(p[1]&&p[1]!=='page'){let k=p[1];try{k=decodeURIComponent(k)}catch(er){}q=fqNW().find(x=>x.id===k&&fqIsPub(x))}t=(q?q.title:(HD().nt||NW_T))+' | '+s.nameTh}else if(p[0]==='courses')t='รายวิชาทั้งหมด | '+s.nameTh;else if(p[0]==='course'){let k='';try{k=cqNorm(decodeURIComponent(p[1]||''))}catch(er){}const q=k&&crsIndex().get(k);if(q)t=q.code+' '+q.name+' | '+s.nameTh}else if(p[0]==='p'){const q=getPages().find(x=>x.slug===p[1]&&x.status==='published');if(q)t=q.title+' | '+s.nameTh}document.title=t}
 function render(){const h=location.hash||'#/',p=h.replace(/^#\/?/,'').split('/');if(h!==last){if(innerWidth<760)sbc=true;toast=null;WC={};last=h}
  setTitle(p);let html;try{if(p[0]==='admin')html=admin(p.slice(1));else html=shell(p[0]===''?homeView():PUB[p[0]]?PUB[p[0]](p[1],p[2]):nf())}catch(e){html='<div class="w sec"><div class="msg er">เกิดข้อผิดพลาด: '+E(e.message)+'</div></div>'}
- const y=scrollY;$('app').innerHTML=html;sndSync();cmMount();fqPlFilter();statsMount();if(h===last&&!document.activeElement.matches('input,textarea'))scrollTo(0,y)}
+ const y=scrollY;$('app').innerHTML=html;sndSync();cmMount();ceMount();fqPlFilter();statsMount();if(h===last&&!document.activeElement.matches('input,textarea'))scrollTo(0,y)}
 addEventListener('hashchange',()=>{render();scrollTo(0,0)});render();initDb();document.addEventListener('click',e=>{if(!e.target.closest('.dd'))closeDd()});document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('md').innerHTML='';const d=document.activeElement&&document.activeElement.closest('.dd');closeDd();if(d)document.activeElement.blur()}});

@@ -624,3 +624,41 @@ html.kld-on{overflow:hidden}
 @keyframes kldBreath{from{opacity:.82}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){.kld-spin,.kld-mark{animation:none}#kit-loader,.kld-more{transition-duration:.01s,0s}}
 @media print{#kit-loader{display:none}}
+
+/* ===== ตัวแก้ไขผัง Isometric (หลังบ้าน #/admin/campus/layout) — คลาส .ce-* แยกจากโหมดแผนผังเดิม (.cm*) ===== */
+.adm:has(.cedt){max-width:none}
+.ce-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0}
+.ce-bar .btn:disabled{opacity:.45;cursor:not-allowed}
+.ce-sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+.ce-grow{flex:1 1 auto}
+.ce-ck{display:inline-flex;align-items:center;gap:5px;font-size:.88rem;margin:0}
+.ce-ck input{width:auto;margin:0}
+.ce-st{font-size:.85rem;opacity:.8}
+.ce-st.d{opacity:1;font-weight:700;color:var(--gold,#b45309)}
+.ce-mt{display:none;gap:6px;margin:6px 0}
+.ce-wrap{display:grid;grid-template-columns:230px minmax(0,1fr) 250px;gap:10px;align-items:start}
+.ce-lib,.ce-prop{border:1px solid var(--line);border-radius:14px;background:var(--surface,var(--card));padding:10px;max-height:calc(100vh - 210px);overflow:auto}
+.ce-prop h3,.ce-prop h4{margin:.2em 0}
+.ce-prop label{display:block;margin-top:8px;font-size:.85rem}
+.ce-prop input[type=number],.ce-prop input[type=color]{width:100%;box-sizing:border-box}
+.ce-prop input[type=range]{width:100%}
+.ce-two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ce-view{position:relative;overflow:hidden;height:calc(100vh - 230px);min-height:420px;border:1px solid var(--line);border-radius:14px;background:repeating-conic-gradient(#0000000a 0 25%,#0000 0 50%) 0 0/24px 24px,var(--surface,var(--card));touch-action:none;user-select:none;-webkit-user-select:none;cursor:default}
+.ce-view.hand{cursor:grab}.ce-view.dr{cursor:grabbing}
+.ce-view:focus-visible{outline:3px solid var(--gold,#c9a54e);outline-offset:2px}
+.ce-stage{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.ce-bg{position:absolute;left:0;top:0;box-shadow:0 0 0 1px #0003}
+.ce-it{position:absolute;max-width:none;pointer-events:none;user-select:none}
+.ce-miss{display:grid;place-items:center;background:#fee2e2;border:1px dashed #b91c1c;color:#b91c1c;font-weight:700}
+.ce-grid{position:absolute;left:0;top:0;pointer-events:none;z-index:99990}
+#ce-sels{position:absolute;left:0;top:0;z-index:99995}
+.ce-sel{position:absolute;outline:calc(1.6px*var(--inv,1)) dashed var(--act,#2563eb);background:#2563eb14;pointer-events:none}
+.ce-h{position:absolute;width:calc(14px*var(--inv,1));height:calc(14px*var(--inv,1));margin:calc(-7px*var(--inv,1)) 0 0 calc(-7px*var(--inv,1));background:var(--act,#2563eb);border:calc(2px*var(--inv,1)) solid #fff;border-radius:50%;cursor:nwse-resize;pointer-events:auto;touch-action:none}
+.ce-tiles{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+.ce-tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 4px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);font:inherit;font-size:.74rem;line-height:1.2;cursor:grab;touch-action:pan-y}
+.ce-tile:hover{border-color:var(--act,#2563eb)}.ce-tile:focus-visible{outline:2px solid var(--gold,#c9a54e)}
+.ce-tile img{width:100%;height:64px;object-fit:contain;pointer-events:none}
+.ce-ghost{position:fixed;z-index:9999;pointer-events:none;opacity:.8;max-width:none}
+#ce-q{width:100%;box-sizing:border-box;margin-bottom:6px}
+@media(max-width:1000px){.ce-wrap{grid-template-columns:1fr}.ce-lib,.ce-prop{display:none;max-height:42vh}.ce-wrap.lo .ce-lib{display:block}.ce-wrap.po .ce-prop{display:block}.ce-lib{order:2}.ce-prop{order:2}.ce-view{height:58vh;min-height:320px}.ce-mt{display:flex}.ce-tiles{grid-template-columns:repeat(3,1fr)}}
+.ce-prop input[type=color]{height:38px;padding:2px;cursor:pointer}
