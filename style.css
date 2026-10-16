@@ -662,3 +662,20 @@ html.kld-on{overflow:hidden}
 #ce-q{width:100%;box-sizing:border-box;margin-bottom:6px}
 @media(max-width:1000px){.ce-wrap{grid-template-columns:1fr}.ce-lib,.ce-prop{display:none;max-height:42vh}.ce-wrap.lo .ce-lib{display:block}.ce-wrap.po .ce-prop{display:block}.ce-lib{order:2}.ce-prop{order:2}.ce-view{height:58vh;min-height:320px}.ce-mt{display:flex}.ce-tiles{grid-template-columns:repeat(3,1fr)}}
 .ce-prop input[type=color]{height:38px;padding:2px;cursor:pointer}
+
+/* ===== HERO v2 (ปรับให้ใกล้เคียง Mockup: ข้อความซ้าย ภาพขวา) — แก้เฉพาะ .hero ===== */
+.hero{display:flex;align-items:center;min-height:clamp(340px,34vw,480px);border-bottom:0}
+.hero .hi{opacity:1;object-position:center right;z-index:0}
+.hero::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(14,22,40,.94) 0%,rgba(14,22,40,.78) 36%,rgba(14,22,40,.2) 68%,rgba(14,22,40,0) 100%)}
+.hero .hc{z-index:2;width:100%;padding-top:56px;padding-bottom:56px}
+.hero .hk{font-size:.8rem;letter-spacing:.2em;font-weight:600;margin-bottom:14px}
+.hero .hc h1{font-family:"Noto Serif Thai","Sarabun",Anuphan,serif;font-weight:700;line-height:1.3;max-width:560px;margin:0 0 14px}
+.hero .hc p{max-width:520px;margin:0;font-size:1.02rem}
+.hero .hb{gap:14px;margin-top:26px}
+.hero .hb .btn{padding:11px 26px;border-width:1.5px}
+.hero .hb .btn.b{background:#E0B65A;border-color:#E0B65A;color:#1F2839}
+.hero .hb .btn.b::after{content:"\2192";margin-left:12px}
+.hero .hb .btn.b:hover{background:#EBC674;border-color:#EBC674}
+.hero .hb .btn:not(.b){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.4);color:#fff}
+@media(max-width:900px){.hero{min-height:clamp(320px,52vw,420px)}.hero::before{background:linear-gradient(90deg,rgba(14,22,40,.95) 0%,rgba(14,22,40,.8) 55%,rgba(14,22,40,.35) 100%)}}
+@media(max-width:700px){.hero{min-height:0}.hero::before{background:linear-gradient(180deg,rgba(14,22,40,.82) 0%,rgba(14,22,40,.9) 100%)}.hero .hc{padding-top:44px;padding-bottom:44px}.hero .hb .btn{flex:1 1 auto;text-align:center;padding:11px 18px}}
