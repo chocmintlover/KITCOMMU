@@ -562,13 +562,19 @@ header .sndp{top:calc(100% + 8px)}
 
 /* ===== หน้าแรก: KIT ในตัวเลข / ข่าวสารและประกาศ / การ์ดกิจกรรม ===== */
 .sts{margin:38px 0 10px}
-.stg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:16px}
-.stc{position:relative;display:flex;flex-direction:column;gap:6px;padding:22px 20px 20px;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.stc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gold)}
-.stn{font-size:clamp(2rem,6.5vw,3rem);line-height:1.05;font-weight:700;color:var(--gold-text);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-.stl{font-size:.98rem;color:var(--muted)}
-.sta{margin:12px 0 0;font-size:.85rem;color:var(--muted)}
-@media(max-width:520px){.stg{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.stc{padding:16px 14px 14px}.stl{font-size:.88rem}}
+.stb{position:relative;display:flex;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+.stb::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gold)}
+.stt{flex:0 0 clamp(170px,19%,220px);display:flex;flex-direction:column;justify-content:center;gap:4px;padding:22px 20px 22px 28px;min-width:0}
+.sts .stt h2{margin:0;font-size:1.05rem;line-height:1.35}
+.stg{flex:1 1 auto;min-width:0;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+.stc{display:flex;align-items:center;justify-content:center;gap:14px;padding:22px 12px;min-width:0;border-left:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.sti{flex:0 0 auto;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;font-size:1.4rem;color:var(--gold-text);background:color-mix(in srgb,var(--gold) 16%,transparent)}
+.stx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.stn{font-size:clamp(1.5rem,2.5vw,2.1rem);line-height:1.1;font-weight:700;color:var(--gold-text);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.stl{font-size:.92rem;line-height:1.35;color:var(--muted)}
+.sta{margin:0;font-size:.82rem;color:var(--muted)}
+@media(max-width:900px){.stb{flex-direction:column}.stt{flex:0 0 auto;padding:18px 20px 6px 26px}.stc{flex-direction:column;gap:8px;text-align:center;padding:14px 8px 20px}.stx{align-items:center}.stc:first-child{border-left:0}}
+@media(max-width:520px){.stg{grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-columns:auto}.stc{border-left:0;padding:16px 8px}.stc:nth-child(even){border-left:1px solid color-mix(in srgb,var(--line) 70%,transparent)}.stc:nth-child(n+3){border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}.sti{width:42px;height:42px;font-size:1.25rem}.stl{font-size:.86rem}}
 
 .nws{margin:38px 0 10px}
 .nwg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:18px;align-items:stretch}
