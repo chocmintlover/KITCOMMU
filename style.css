@@ -762,3 +762,23 @@ html.kld-on{overflow:hidden}
 .evl{contain:size;min-height:380px;overflow:hidden}
 .evlist{flex:1 1 0;min-height:0;max-height:none}
 }
+
+/* ===== HERO หลายภาพ (เลื่อนแนวนอน) — ใช้เมื่อมีตั้งแต่ 2 ภาพ; ภาพเดียวแสดงแบบเดิม ===== */
+.hi.hx{visibility:hidden}
+.hsl{position:absolute;inset:0;overflow:hidden;z-index:0}
+.hst{display:flex;height:100%;transition:transform .7s cubic-bezier(.4,0,.2,1);will-change:transform}
+.hst .hi{position:relative;inset:auto;flex:0 0 100%;width:100%;min-width:0}
+@media(min-width:701px){.hsx .hc{padding-top:76px;padding-bottom:76px}}
+.hctl{position:absolute;left:0;right:0;bottom:16px;z-index:3;margin-left:auto;margin-right:auto;display:flex;justify-content:flex-end;align-items:center;gap:6px;pointer-events:none}
+.hctl>*{pointer-events:auto}
+.hdots{display:flex;align-items:center}
+.hdot{width:24px;height:24px;padding:0;border:0;background:none;display:grid;place-items:center;cursor:pointer}
+.hdot::before{content:"";width:8px;height:8px;border-radius:99px;background:rgba(255,255,255,.55);transition:width .3s,background .3s}
+.hdot.on::before{width:22px;background:#E0B65A}
+.hdot:focus-visible,.hbb:focus-visible{outline:3px solid #E0B65A;outline-offset:2px}
+.hbb{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;border:1px solid rgba(255,255,255,.45);background:rgba(14,22,40,.45);color:#fff;cursor:pointer;padding:0}
+.hbb:hover{border-color:#E0B65A;color:#E0B65A}
+.hbp svg{transform:scaleX(-1)}
+@media(max-width:700px){.hsx .hc{padding-bottom:72px}.hctl{bottom:12px}}
+@media(prefers-reduced-motion:reduce){.hst{transition:none}}
+.himg{display:flex;gap:6px;align-items:center;margin-bottom:6px}.himg input{flex:1;min-width:0}
