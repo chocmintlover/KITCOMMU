@@ -743,3 +743,14 @@ html.kld-on{overflow:hidden}
 .ea .nwrs{gap:12px}
 @media(max-width:900px){.ea{grid-template-columns:minmax(0,1fr);gap:30px}}
 @media(max-width:560px){.ea .evcg,.ea.ea1 .evcg{grid-template-columns:minmax(0,1fr)}.ea .nwrm{flex-basis:80px}}
+
+/* ===== หน้ากิจกรรม: ตัวกรองตามสถานะ ===== */
+.evf{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 4px}
+.pgs[data-s~=cc] .evl>.evf,.pgs[data-s~=cc] .evl>.evh{grid-column:1/-1}
+.evfb{font:inherit;font-size:.9rem;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.evfb small{font-size:.8rem;opacity:.7}
+.evfb:hover{border-color:var(--gold)}
+.evfb.on{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:600}
+.evfb:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.evst-on{background:color-mix(in srgb,var(--gold) 22%,var(--surface))}
+.evst-past{opacity:.75}
