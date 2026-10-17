@@ -489,7 +489,7 @@ header .sndp{top:calc(100% + 8px)}
 .pgs[data-s~=bw]{font-weight:var(--pg-bw)}
 .pgs:is([data-s~=cw],[data-s~=cc],[data-s~=gap]) :is(.grid,.lcg):not(.ty *){gap:var(--pg-gap,16px);grid-template-columns:repeat(auto-fill,minmax(max(min(100%,var(--pg-cw,250px)),calc((100% - (var(--pg-cc,8) - 1)*var(--pg-gap,16px))/var(--pg-cc,8))),1fr))}
 .pgs[data-s~=gap] .evl{gap:var(--pg-gap)}
-.pgs[data-s~=cc] .evl{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(min(100%,var(--pg-cw,250px)),calc((100% - (var(--pg-cc) - 1)*var(--pg-gap,10px))/var(--pg-cc))),1fr))}
+.pgs[data-s~=cc] .evlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(min(100%,var(--pg-cw,250px)),calc((100% - (var(--pg-cc) - 1)*var(--pg-gap,10px))/var(--pg-cc))),1fr))}
 .pgs[data-s~=sp]>*{margin-top:0;margin-bottom:0}
 .pgs[data-s~=sp]>*+*{margin-top:var(--pg-sp)}
 
@@ -746,7 +746,6 @@ html.kld-on{overflow:hidden}
 
 /* ===== หน้ากิจกรรม: ตัวกรองตามสถานะ ===== */
 .evf{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 4px}
-.pgs[data-s~=cc] .evl>.evf,.pgs[data-s~=cc] .evl>.evh{grid-column:1/-1}
 .evfb{font:inherit;font-size:.9rem;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .evfb small{font-size:.8rem;opacity:.7}
 .evfb:hover{border-color:var(--gold)}
@@ -754,3 +753,12 @@ html.kld-on{overflow:hidden}
 .evfb:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .evst-on{background:color-mix(in srgb,var(--gold) 22%,var(--surface))}
 .evst-past{opacity:.75}
+
+/* ===== หน้าปฏิทิน: จำกัดความสูงรายการกิจกรรม (เลื่อนภายในกรอบ) ===== */
+.evlist{display:flex;flex-direction:column;gap:10px;min-width:0;max-height:clamp(280px,52vh,480px);overflow-y:auto;padding-right:4px;-webkit-overflow-scrolling:touch}
+.pgs[data-s~=gap] .evlist{gap:var(--pg-gap)}
+@media(min-width:980px){
+.calwrap{align-items:stretch}
+.evl{contain:size;min-height:380px;overflow:hidden}
+.evlist{flex:1 1 0;min-height:0;max-height:none}
+}
